@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public class DatTypeFloat : RageAudioDatItem<float>
+    public class DatTypeFloat : DatTypeBase<float>
     {
         public override int ID
         {

@@ -29,7 +29,12 @@ namespace RageAudioTool.IO
             return result;
         }
 
-   /*     public override string ReadString()
+        public static implicit operator Stream(IOFileReader reader)
+        {
+            return reader.BaseStream;
+        }
+
+        public string ReadANSI()
         {
             char c;
             string result = "";
@@ -40,6 +45,6 @@ namespace RageAudioTool.IO
             }
 
             return result;
-        }*/
+        }
     }
 }

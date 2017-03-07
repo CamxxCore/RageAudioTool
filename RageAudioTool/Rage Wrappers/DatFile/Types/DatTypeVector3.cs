@@ -7,7 +7,7 @@ using RageAudioTool.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public class DatTypeVector3 : RageAudioDatItem<RageVector3>
+    public class DatTypeVector3 : DatTypeBase<RageVector3>
     {
         public override int ID
         {

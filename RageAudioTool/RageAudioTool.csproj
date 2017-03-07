@@ -12,6 +12,7 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,9 +34,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>RAGE_Technology_Group_Logo.svg.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,35 +50,75 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Interfaces\IXMLSerializable.cs" />
     <Compile Include="IO\IOFileReader.cs" />
     <Compile Include="IO\IOFileWriter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rage Wrappers\DatFile\RageAudioMetadata54.cs" />
+    <Compile Include="Rage Wrappers\DatFile\RageAudioMetadata5.cs" />
     <Compile Include="Rage Wrappers\DatFile\RageAudioMetadata4.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\Base\IRageAudioDatBase.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\Base\RageAudioDatItem.cs" />
-    <Compile Include="Rage Wrappers\DatFile\RageAudioMetadata.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\DatTypeFloat.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\DatTypeFloatArray.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\DatTypeInt32.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\DatTypeString.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\DatTypeStringPair.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\DatTypeVector3.cs" />
-    <Compile Include="Types\Vector3.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audAutomationSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audCollapsingStereoSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audCrossfadeSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audDirectionalSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audDynamicEntitySound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audEnvelopeSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audEnvironmentSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audExternalStreamSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audFluctuatorSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audGranularSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audIfSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audKineticSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audLoopingSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audMathOperationSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audModularSynthSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audMultitrackSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audOnStopSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audParameterTransformSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audRandomizedSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audRetriggeredOverlappedSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSequentialOverlapSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSequentialSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSimpleSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSpeechSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audStreamingSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSwitchSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audTwinLoopSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audUnknownSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audVariableBlockSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audVariableCurveSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audVariablePrintValueSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audWrapperSound.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Nested File Types\audFloat.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Nested File Types\audHash.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Nested File Types\audString.cs" />
+    <Compile Include="TempTypes.cs" />
+    <Compile Include="Types\ISerializable.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\audSoundBase.cs" />
+    <Compile Include="Rage Wrappers\DatFile\RageDataFile.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Nested File Types\audByteArray.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Nested File Types\audFloatArray.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Nested File Types\audInteger.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Nested File Types\audVector.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Nested File Types\audFiletypeBase.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShorelineLakeMetadata.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShorelinePoolMetadata.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audUnkMetadata.cs" />
+    <Compile Include="XML\ResourceXMLReader5.cs" />
+    <Compile Include="XML\ResourceXMLWriter5.cs" />
+    <Compile Include="Types\Vec3.cs" />
     <Compile Include="Utility.cs" />
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -82,6 +128,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -96,7 +143,9 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="RAGE_Technology_Group_Logo.svg.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

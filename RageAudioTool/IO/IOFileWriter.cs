@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
 namespace RageAudioTool.IO
 {
-    class IOFileWriter : BinaryWriter
+    public class IOFileWriter : BinaryWriter
     {
         public IOFileWriter(Stream output, Encoding encoding) : base(output, encoding)
         { }
@@ -28,6 +25,11 @@ namespace RageAudioTool.IO
                 numTrailingLineSpaces = 1;
             value += Environment.NewLine;
             Write(value);
+        }
+
+        public void WriteLine()
+        {
+            WriteLine("", 1);
         }
 
         public void WriteLine(string value)
