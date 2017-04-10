@@ -35,6 +35,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile.XML
 
                 writer.WriteStartElement("dataEntries");
 
+                writer.WriteAttributeString("sectionSize", data.DataItems.Length.ToString());
+
                 foreach (var item in data.DataItems)
                 {
                     Serialize(writer, item);
@@ -48,7 +50,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile.XML
 
                 foreach (var item in data.HashItems)
                 {
-                    writer.WriteElementString("item", item.Data.ToString());
+                    writer.WriteElementString("item", item.Value.ToString());
                 }
 
                 writer.WriteEndElement();
@@ -57,7 +59,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile.XML
 
                 foreach (var item in data.HashItems1)
                 {
-                    writer.WriteElementString("item", item.Data.ToString());
+                    writer.WriteElementString("item", item.Value.ToString());
                 }
 
                 writer.WriteEndElement();

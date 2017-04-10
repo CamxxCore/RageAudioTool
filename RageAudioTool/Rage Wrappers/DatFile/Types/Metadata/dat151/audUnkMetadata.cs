@@ -6,10 +6,10 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
     {
         floatPair[] unkData;
 
-        public audUnkMetadata(string str) : base(str)
+        public audUnkMetadata(RageDataFile parent, string str) : base(parent, str)
         { }
 
-        public audUnkMetadata(uint hashName) : base(hashName)
+        public audUnkMetadata(RageDataFile parent, uint hashName) : base(parent,  hashName)
         { }
 
         public audUnkMetadata()

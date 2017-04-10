@@ -1,176 +1,120 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
-{
-    
-
+{ 
     /// <summary>
     /// Metadata without strings e.g. speech resources, dat54 (usually)
     /// </summary>
     public class RageAudioMetadata5 : RageDataFile
     {
-        public audSoundBase[] DataItems
-        {
-            get { return dataItems; }
-            set { dataItems = value; }
-        }
-
-        public audHash[] HashItems
-        {
-            get { return hashItems; }
-            set { hashItems = value; }
-        }
-
-        public audHash[] HashItems1
-        {
-            get { return hashItems1; }
-            set { hashItems1 = value; }
-        }
-
-        private audSoundBase[] dataItems;
-
-        private audHash[] hashItems, hashItems1;
-
         public override void Read(RageDataFileReadReference file)
         {
-            base.Read(file);
+            string filePath = "categories.txt";
 
-            int count = file.ReadInt32();
-
-            dataItems = ReadDataItems(file, count);
-
-            count = file.ReadInt32();
-
-            hashItems = ReadHashItems(file, count);
-
-            count = file.ReadInt32();
-
-            hashItems1 = ReadHashItems(file, count); // read audio bank hashes.
-        }
-
-        filePtrPair[] hashIndexes = new filePtrPair[0x400];
-
-        private uint GetEncryptedFilePtr(int offset, uint hash)
-        {
-            var maskedIdx = hash & 0xFF;
-
-            var item = hashIndexes[maskedIdx];
-
-            var v1 = item.A;
-
-            var v2 = item.B - 1;
-
-            uint it = 0;
-
-            for (int i = 0; i < v2; i++)
+            if (File.Exists(filePath))
             {
-                it = (uint)(v2 + i) >> 1;
-
-                var index = v1 + it;
-
-                if (maskedIdx <= (dataItems[index].HashName & 0xFF))
+                using (StreamReader reader = File.OpenText(filePath))
                 {
-                    break;
+                    string line;
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            if (!Nametable.ContainsValue(line))
+                            {
+                                Nametable.Add(line.HashKey(), line);
+                            }
+
+                            else MessageBox.Show("Ignoring duplicate entry \"" + line + "\" in \"" + filePath);
+                        }
+                    }
                 }
             }
 
-            return (it + v1);
-        }
+            filePath = "variables.txt";
 
-        private void getHshIdxItems()
-        {
-            for (int i = 0; i < dataItems.Length; i++)
+            if (File.Exists(filePath))
             {
-                var item = dataItems[i];
+                using (StreamReader reader = File.OpenText(filePath))
+                {
+                    string line;
 
-                ++hashIndexes[item.HashName & 0xFF].B;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (!string.IsNullOrEmpty(line))
+                        {
+                            if (!Nametable.ContainsValue(line))
+                            {
+                                Nametable.Add(line.HashKey(), line);
+                            }
+
+                            else MessageBox.Show("Ignoring duplicate entry \"" + line + "\" in \"" + filePath);
+                        }
+                    }
+                }
             }
 
-            uint v3 = 0;
-
-            int y = 1;
-
-            for (int x = 0xFF; x != 0; x--)
-            {
-                v3 += hashIndexes[y - 1].B;
-
-                hashIndexes[y].A = v3;
-
-                y += 1;
-            }
+            base.Read(file);
         }
 
-        public audHash[] ReadHashItems(RageDataFileReadReference file, int itemCount)
+        public override audDataBase[] ReadDataItems(RageDataFileReadReference file, int itemCount)
         {
-            var items = new audHash[itemCount];
+            var items = new audDataBase[itemCount];
 
             for (int i = 0; i < itemCount; i++)
             {
-                var offset = file.ReadUInt32();
-                offset -= 0x8;
+                var hashKey = file.ReadUInt32();
 
-                byte[] data = new byte[0x4];
+                var offset = file.ReadInt32();
 
-                Buffer.BlockCopy(DataSection, (int)offset, data, 0, 4);
-
-                uint result = BitConverter.ToUInt32(data, 0);
-
-                /*   var ptr = GetEncryptedFilePtr((int)offset, result);
-
-                   result = (0 << 24) | ptr & 0xFFFFFF;
-
-                   var bytes = BitConverter.GetBytes(result);
-
-                   Buffer.BlockCopy(data, 0, DataSection, (int)offset, 4);
-
-                //   System.Windows.Forms.MessageBox.Show("result: " + result.ToString());*/
-
-                items[i] = new audHash(result);
-            }
-
-            return items;
-        }
-
-        protected audSoundBase[] ReadDataItems(RageDataFileReadReference file, int itemCount)
-        {
-            var items = new audSoundBase[itemCount];
-
-            for (int i = 0; i < itemCount; i++)
-            {
-                var hashKey = file.ReadUInt32(); // Hash key of this object. For dynamic mixer data, this appears to be the hash for the mixer group (See native AUDIO::_0x153973AB99FE8980)
-
-                var offset = file.ReadInt32(); // Offset pointing to the relevent data in the data section.
-
-                var length = file.ReadInt32(); // Total length of data from data section.
+                var length = file.ReadInt32();
 
                 byte[] data = new byte[length];
 
                 Array.Copy(DataSection, offset, data, 0, length);
 
-                items[i] = CreateDerivedDataType(data[0], hashKey);             
+                items[i] = CreateDerivedDataType(data[0], hashKey);
 
                 items[i].Deserialize(data);
 
-                if (NametablePresent && NametableObjects[hashKey] != null)
-                {
-                    items[i].Name = NametableObjects[hashKey];
-                }
+                items[i].FileOffset = offset;
             }
 
             return items;
         }
 
+        protected override void WriteDataOffsets(RageDataFileWriteReference file)
+        {
+            for (int i = 0; i < DataItems.Length; i++)
+            {
+                file.Write(DataItems[i].Name.HashKey);
+
+                file.Write(DataItems[i].FileOffset);
+
+                file.Write(DataItems[i].Serialize().Length);
+            }               
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private audSoundBase CreateDerivedDataType(int dataType, uint hashKey)
+        private audDataBase CreateDerivedDataType(int dataType, uint hashKey)
         {
             if (Type == RageAudioMetadataFileType.Dat151_Parameters)
             {
                 switch ((dat151_audMetadataTypes)dataType)
                 {
-                    case dat151_audMetadataTypes.ShoreLinePool:
-                        return new audShorelinePoolMetadata(hashKey);
+                  //  case dat151_audMetadataTypes.ShoreLineLake:
+                   //     return new audShorelineLake(this, hashKey);
+                   // case dat151_audMetadataTypes.ShoreLinePool:
+                     //   return new audShorelinePoolMetadata(this, hashKey);
+                    case dat151_audMetadataTypes.ShoreLineList:
+                        return new audShorelineList(this, hashKey);
+                    default:
+                        return new audByteArray(this, hashKey);
                 }
             }
 
@@ -178,93 +122,81 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             {
                 switch ((dat54_audMetadataTypes)dataType)
                 {
+                    case dat54_audMetadataTypes.LoopingSound:
+                        return new audLoopingSound(this, hashKey);
                     case dat54_audMetadataTypes.MultitrackSound:
-                        return new audMultitrackSound(hashKey);
+                        return new audMultitrackSound(this, hashKey);
                     case dat54_audMetadataTypes.VariableBlockSound:
-                        return new audVariableBlockSound(hashKey);
+                        return new audVariableBlockSound(this, hashKey);
                     case dat54_audMetadataTypes.SimpleSound:
-                        return new audSimpleSound(hashKey);
+                        return new audSimpleSound(this, hashKey);
                     case dat54_audMetadataTypes.EnvelopeSound:
-                        return new audEnvelopeSound(hashKey);
+                        return new audEnvelopeSound(this, hashKey);
                     case dat54_audMetadataTypes.TwinLoopSound:
-                        return new audTwinLoopSound(hashKey);
+                        return new audTwinLoopSound(this, hashKey);
                     case dat54_audMetadataTypes.SpeechSound:
-                        return new audSpeechSound(hashKey);
+                        return new audSpeechSound(this, hashKey);
                     case dat54_audMetadataTypes.OnStopSound:
-                        return new audOnStopSound(hashKey);
+                        return new audOnStopSound(this, hashKey);
                     case dat54_audMetadataTypes.WrapperSound:
-                        return new audWrapperSound(hashKey);
+                        return new audWrapperSound(this, hashKey);
                     case dat54_audMetadataTypes.SequentialSound:
-                        return new audSequentialSound(hashKey);
+                        return new audSequentialSound(this, hashKey);
                     case dat54_audMetadataTypes.StreamingSound:
-                        return new audStreamingSound(hashKey);
+                        return new audStreamingSound(this, hashKey);
                     case dat54_audMetadataTypes.RetriggeredOverlappedSound:
-                        return new audRetriggeredOverlappedSound(hashKey);
+                        return new audRetriggeredOverlappedSound(this, hashKey);
                     case dat54_audMetadataTypes.CrossfadeSound:
-                        return new audCrossfadeSound(hashKey);
+                        return new audCrossfadeSound(this, hashKey);
                     case dat54_audMetadataTypes.CollapsingStereoSound:
-                        return new audCollapsingStereoSound(hashKey);
+                        return new audCollapsingStereoSound(this, hashKey);
                     case dat54_audMetadataTypes.RandomizedSound:
-                        return new audRandomizedSound(hashKey);
+                        return new audRandomizedSound(this, hashKey);
                     case dat54_audMetadataTypes.EnvironmentSound:
-                        return new audEnvironmentSound(hashKey);
+                        return new audEnvironmentSound(this, hashKey);
                     case dat54_audMetadataTypes.DynamicEntitySound:
-                        return new audDynamicEntitySound(hashKey);
+                        return new audDynamicEntitySound(this, hashKey);
                     case dat54_audMetadataTypes.SequentialOverlapSound:
-                        return new audSequentialOverlapSound(hashKey);
+                        return new audSequentialOverlapSound(this, hashKey);
                     case dat54_audMetadataTypes.ModularSynthSound:
-                        return new audModularSynthSound(hashKey);
+                        return new audModularSynthSound(this, hashKey);
                     case dat54_audMetadataTypes.GranularSound:
-                        return new audGranularSound(hashKey);
+                        return new audGranularSound(this, hashKey);
                     case dat54_audMetadataTypes.DirectionalSound:
-                        return new audDirectionalSound(hashKey);
+                        return new audDirectionalSound(this, hashKey);
                     case dat54_audMetadataTypes.KineticSound:
-                        return new audKineticSound(hashKey);
+                        return new audKineticSound(this, hashKey);
                     case dat54_audMetadataTypes.SwitchSound:
-                        return new audSwitchSound(hashKey);
+                        return new audSwitchSound(this, hashKey);
                     case dat54_audMetadataTypes.VariableCurveSound:
-                        return new audVariableCurveSound(hashKey);
+                        return new audVariableCurveSound(this, hashKey);
                     case dat54_audMetadataTypes.VariablePrintValueSound:
-                        return new audVariablePrintValueSound(hashKey);
+                        return new audVariablePrintValueSound(this, hashKey);
                     case dat54_audMetadataTypes.IfSound:
-                        return new audIfSound(hashKey);
+                        return new audIfSound(this, hashKey);
                     case dat54_audMetadataTypes.MathOperationSound:
-                        return new audMathOperationSound(hashKey);
+                        return new audMathOperationSound(this, hashKey);
                     case dat54_audMetadataTypes.ParameterTransformSound:
-                        return new audParameterTransformSound(hashKey);
+                        return new audParameterTransformSound(this, hashKey);
                     case dat54_audMetadataTypes.FluctuatorSound:
-                        return new audFluctuatorSound(hashKey);
+                        return new audFluctuatorSound(this, hashKey);
                     case dat54_audMetadataTypes.AutomationSound:
-                        return new audAutomationSound(hashKey);
+                        return new audAutomationSound(this, hashKey);
                     case dat54_audMetadataTypes.ExternalStreamSound:
-                        return new audExternalStreamSound(hashKey);
+                        return new audExternalStreamSound(this, hashKey);
+                    case dat54_audMetadataTypes.SoundSet:
+                        return new audSoundSet(this, hashKey);
                     default:
-                        return new audUnknownSound(hashKey);
+                        return new audByteArray(this, hashKey);
                 }
             }
 
-            return null;
-        }
-
-        protected void ReadUnkHashItems2(RageDataFileReadReference file, int itemCount)
-        {
-            hashItems1 = new audHash[itemCount];
-
-            for (int i = 0; i < itemCount; i++)
+            else if (Type == RageAudioMetadataFileType.Dat4)
             {
-                var offset = file.ReadInt32();
-                offset -= 0x8;
-
-                byte[] data = new byte[0x4];
-
-                Buffer.BlockCopy(DataSection, offset, data, 0, 4);
-
-                uint result = (uint)BitConverter.ToInt32(data, 0);
-
-                var masked = offset & 0xFFFFFF | (i << 24);
-
-                HashItems[i] = new audHash(result);
+                return new audByteArray(this, hashKey);
             }
+
+            return null;
         }
 
         public override string ToString()
@@ -291,11 +223,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             builder.AppendLine();
 
-            for (int i = 0; i < dataItems.Length; i++)
+            foreach (audDataBase dataEntry in DataItems)
             {
-                var dataEntry = dataItems[i];
-
-                builder.AppendFormat("\n{0}: {1}", dataEntry.Name, dataEntry);
+                builder.AppendFormat("\n[{0}] {1} @ 0x{2:X} [Length:{3}]\n{4}\n", dataEntry.Name, dataEntry.GetType().Name, dataEntry.FileOffset, dataEntry.Serialize().Length, dataEntry.ToString());
             }
 
             builder.AppendLine();
@@ -304,9 +234,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             builder.AppendLine();
 
-            for (int i = 0; i < HashItems.Length; i++)
+            foreach (var item in HashItems)
             {
-                builder.AppendFormat("HashItems[{0}]: 0x{1:X}\n", i, HashItems[i].Data);
+                builder.AppendFormat("0x{0:X} (Offset: 0x{1:X})\n", item.Value, item.FileOffset);
             }
 
             builder.AppendLine();
@@ -315,10 +245,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             builder.AppendLine();
 
-            for (int i = 0; i < HashItems1.Length; i++)
+            foreach (var item in HashItems1)
             {
-                builder.AppendFormat("AudioBankHashes[{0}]: 0x{1:X}\n", i, HashItems1[i].Data);
+                builder.AppendFormat("0x{0:X} (Offset: 0x{1:X})\n", item.Value, item.FileOffset);
             }
+
             return builder.ToString();
         }
     }

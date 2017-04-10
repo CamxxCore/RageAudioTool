@@ -3,15 +3,18 @@ using System.Xml.Serialization;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public class audUnknownSound : audSoundBase
+    public class audSpeechData : audSoundBase
     {
         [XmlElement(DataType = "hexBinary")]
         public byte[] Data { get; set; }
 
+        public override byte[] Serialize()
+        {
+            return Data;
+        }
+
         public override int Deserialize(byte[] data)
         {
-         //   var bytesRead = base.Deserialize(data);
-
             Data = data;
 
             return data.Length;
@@ -22,13 +25,13 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             return BitConverter.ToString(Data).Replace("-", "");
         }
 
-        public audUnknownSound(string str) : base(str)
+        public audSpeechData(RageDataFile parent, string str) : base(parent, str)
         { }
 
-        public audUnknownSound(uint hashName) : base(hashName)
+        public audSpeechData(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
 
-        public audUnknownSound()
+        public audSpeechData()
         { }
     }
 }

@@ -8,9 +8,18 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         [XmlElement(DataType = "hexBinary")]
         public byte[] Data { get; set; }
 
+        public override byte[] Serialize()
+        {
+            var bytes = base.Serialize();
+
+            Buffer.BlockCopy(bytes, 0, Data, 0, bytes.Length);
+
+            return Data;
+        }
+
         public override int Deserialize(byte[] data)
         {
-            var bytesRead = base.Deserialize(data);
+            int bytesRead = base.Deserialize(data);
 
             Data = data;
 
@@ -22,10 +31,10 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             return BitConverter.ToString(Data).Replace("-", "");
         }
 
-        public audGranularSound(string str) : base(str)
+        public audGranularSound(RageDataFile parent, string str) : base(parent, str)
         { }
 
-        public audGranularSound(uint hashName) : base(hashName)
+        public audGranularSound(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
 
         public audGranularSound()

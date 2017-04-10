@@ -1,4 +1,13 @@
-﻿namespace RageAudioTool.Rage_Wrappers.DatFile.XML
+﻿using System;
+using System.IO;
+using System.Xml;
+using System.Xml.Linq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Serialization;
+using System.Reflection;
+
+namespace RageAudioTool.Rage_Wrappers.DatFile.XML
 {
     class ResourceXMLReader5
     {
@@ -9,124 +18,114 @@
             filename = fileName;
         }
 
-     /*   public RageAudioMetadata5 ReadData()
+        public audSoundBase GetDerivedDataType(XmlReader reader, string elementName)
         {
-            IList<string> strings = new List<string>();
+            var baseType = typeof(audSoundBase);
 
-            IList<audSoundBase> dataItems = new List<audSoundBase>();
+            var assembly = Assembly.GetExecutingAssembly();
 
-            IList<IRageDatItemBase> hashItems = new List<IRageDatItemBase>();
-
-            IList<IRageDatItemBase> hashItems1 = new List<IRageDatItemBase>();
-
-            RageAudioMetadata5 md = new RageAudioMetadata5();
-
-            XDocument xml = XDocument.Load(filename);
-
-            foreach (var node in xml.Descendants("stringTable"))
+            foreach (Type type in assembly
+                .GetTypes()
+                .Where(t => t.IsClass && t.IsSubclassOf(baseType)))
             {
-                foreach (var subNode in node.Descendants())
+                if (type.Name == elementName)
                 {
-                    strings.Add(subNode.Value);
+                 //   System.Windows.Forms.MessageBox.Show("found it");
+
+                    var serializer = new XmlSerializer(type);
+
+                    return (audSoundBase) serializer.Deserialize(reader);
                 }
-
-                md.StringTable = strings.ToArray();
-
-                break;
             }
 
-            foreach (var node in xml.Descendants("audioEntries"))
+            return null;
+        }
+
+        public RageAudioMetadata5 ReadData()
+        {
+            RageAudioMetadata5 data = new RageAudioMetadata5();
+
+            data.Type = RageAudioMetadataFileType.Dat54_DataEntries;
+
+            List<string> stringTable = new List<string>();
+
+            List<audSoundBase> sounds = new List<audSoundBase>();
+
+            List<audHash> hashItems = new List<audHash>();
+
+            List<audHash> hashItems1 = new List<audHash>();
+
+            using (XmlReader reader = XmlReader.Create(filename))
             {
-                foreach (var subNode in node.Descendants("audioEntry"))
+                reader.ReadToFollowing("stringTable");
+
+                if (reader.ReadToDescendant("item"))
                 {
-                    var type = Enum.Parse(typeof(dat54_audMetadataTypes), subNode.Attribute("type").Value);
-
-                    var subNodes = subNode.Descendants();
-
-                    string name = subNodes.FirstOrDefault(x => x.Name == "name").Value;
-
-                    string data = subNodes.FirstOrDefault(x => x.Name == "data").Value;
-
-                    dataItems.Add(new audSoundBase(name));             
-                }
-
-                md.DataItems = dataItems.ToArray();
-
-                break;
-            }
-
-            foreach (var node in xml.Descendants("hashItems"))
-            {
-                foreach (var subNode in node.Descendants("item"))
-                {
-                    hashItems.Add(new DatTypeBase<uint>(Convert.ToUInt32(subNode.Value)));
-                }
-
-                md.HashItems = hashItems.ToArray();
-
-                break;
-
-            }
-
-            foreach (var node in xml.Descendants("hashItems1"))
-            {
-                foreach (var subNode in node.Descendants("item"))
-                {
-                    hashItems1.Add(new DatTypeBase<uint>(Convert.ToUInt32(subNode.Value)));
-                }
-
-                md.HashItems1 = hashItems1.ToArray();
-
-                break;
-            }
-    
-            using (var reader = XmlReader.Create(filename))
-            {
-                if (reader.ReadToDescendant("audioEntries"))
-                {
-                    while (reader.ReadToNextSibling("audioEntry"))
+                    while(reader.ReadToNextSibling("item"))
                     {
-                        var type = Enum.Parse(typeof(dat54_audMetadataTypes), reader.GetAttribute("type"));
+                        string str = reader.ReadElementContentAsString();
 
-                        if (reader.ReadToDescendant("name"))
+                        stringTable.Add(str);
+                    }
+                }
+
+                data.StringTable = stringTable.ToArray();
+
+                reader.ReadToFollowing("dataEntries");
+
+                while (reader.Read())
+                {
+                    if (!reader.IsEmptyElement && reader.NodeType == XmlNodeType.Element && reader.Name != string.Empty)
+                    {
+                        if (!reader.IsStartElement()) break;
+
+                        var result = GetDerivedDataType(reader, reader.Name);
+
+                        if (result != null)
                         {
-                            string name = reader.ReadElementContentAsString();
-
-                            if (reader.ReadToDescendant("data"))
-                            {
-                                string data = reader.ReadContentAsString();
-
-                                dataItems.Add(new DataFileObject<string>((int)type, name, data));
-
-                                md.DataItems = dataItems.ToArray();
-                            }
+                            sounds.Add(result);
                         }
                     }
                 }
 
-                if (reader.ReadToDescendant("hashItems"))
+                data.DataItems = sounds.ToArray();
+
+                reader.ReadToFollowing("hashItems");
+
+                if (reader.ReadToDescendant("item"))
                 {
                     while (reader.ReadToNextSibling("item"))
                     {
-                        hashItems.Add(new DatTypeBase<uint>((uint)reader.ReadElementContentAsInt()));
+                        string str = reader.ReadElementContentAsString();
 
-                        md.HashItems = hashItems.ToArray();
+                        hashItems.Add(new audHash(data, Convert.ToUInt32(str)));
                     }
                 }
 
+                data.HashItems = hashItems.ToArray();
 
-                if (reader.ReadToDescendant("hashItems1"))
+                reader.ReadToFollowing("hashItems1");
+
+                if (reader.ReadToDescendant("item"))
                 {
                     while (reader.ReadToNextSibling("item"))
                     {
-                        hashItems1.Add(new DatTypeBase<uint>((uint)reader.ReadElementContentAsInt()));
+                        string str = reader.ReadElementContentAsString();
 
-                        md.HashItems = hashItems1.ToArray();
+                        hashItems1.Add(new audHash(data, Convert.ToUInt32(str)));
                     }
                 }
+
+                data.HashItems1 = hashItems1.ToArray();
             }
 
-            return md;
-        }*/
+            return data;
+        }
+
+        private T Deserialize<T>(XmlReader reader)
+        {
+            var serializer = new XmlSerializer(typeof(T));
+            return (T) serializer.Deserialize(reader);
+        }
     }
 }

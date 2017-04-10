@@ -8,26 +8,13 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
     /// </summary>
     public class RageAudioMetadata4 : RageDataFile
     {
-        public IAudFiletype[] DataItems { get { return dataItems; } }
+        public int NametableLength { get; set; }
 
-        private IAudFiletype[] dataItems;
-
-        public override void Read(RageDataFileReadReference file)
+        public override audDataBase[] ReadDataItems(RageDataFileReadReference file, int itemCount)
         {
-            base.Read(file);
+            NametableLength = file.ReadInt32();
 
-            int count = file.ReadInt32();
-
-            int nametableLength = file.ReadInt32();
-
-            dataItems = ReadDataItems(file, count);
-
-            count = file.ReadInt32();
-        }
-
-        protected unsafe IAudFiletype[] ReadDataItems(RageDataFileReadReference file, int itemCount)
-        {
-            var items = new IAudFiletype[itemCount];
+            var items = new audDataBase[itemCount];
 
             for (int i = 0; i < itemCount; i++)
             {
@@ -35,47 +22,64 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 var offset = file.ReadInt32();
 
-                var dataSize = file.ReadInt32();
+                var length = file.ReadInt32();
 
-                dataSize -= 8; // dataSize - sizeof first two items.
+                int dataType = DataSection[offset];
 
-                var maskedType = BitConverter.ToUInt32(DataSection, offset);
+                byte[] data = new byte[length]; // read item data
 
-                int dataType = (int)(maskedType ^= maskedType & 0xFFFFFF00);
-
-                offset += 8; // skip first two items
-
-                byte[] data = new byte[dataSize]; // read item data
-
-                Buffer.BlockCopy(DataSection, offset, data, 0, dataSize);
+                Buffer.BlockCopy(DataSection, offset, data, 0, length);
 
                 switch (dataType)
                 {
+                    case 0:
+                        items[i] = new audInteger(this, variableName);
+                        break;
                     case 1:
-                        items[i] = new audInteger(variableName);
+                        items[i] = new audUInt(this, variableName);
                         break;
                     case 2:
-                        items[i] = new audFloat(variableName);
+                        items[i] = new audFloat(this, variableName);
                         break;
                     case 3:
-                        items[i] = new audString(variableName);
+                        items[i] = new audString(this, variableName);
                         break;
                     case 5:
-                        items[i] = new audVector(variableName);
+                        items[i] = new audVector(this, variableName);
+                        break;
+                    case 7:
+                        items[i] = new audVariableList(this, variableName);
                         break;
                     case 10:
-                        items[i] = new audFloatArray(variableName);
+                        items[i] = new audFloatArray(this, variableName);
                         break;
-
                     default:
-                        items[i] = new audByteArray(variableName);
+                        items[i] = new audByteArray(this, variableName);
                         break;
                 }
 
                 items[i].Deserialize(data);
+
+                items[i].FileOffset = offset;
+
+                items[i].Length = length;
             }
 
             return items;
+        }
+
+        protected override void WriteDataOffsets(RageDataFileWriteReference file)
+        {
+            file.Write(NametableLength);
+
+            for (int i = 0; i < DataItems.Length; i++)
+            {
+                file.Write((uint)DataItems[i].Name);
+
+                file.Write(DataItems[i].FileOffset);
+
+                file.Write(DataItems[i].Serialize().Length);
+            }
         }
 
         public override string ToString()

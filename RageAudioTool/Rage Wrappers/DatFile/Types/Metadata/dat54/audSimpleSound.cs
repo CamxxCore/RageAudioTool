@@ -13,6 +13,29 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public byte WaveSlotIndex { get; set; }
 
+        public override byte[] Serialize()
+        {
+            var bytes = base.Serialize();
+
+            using (MemoryStream stream = new MemoryStream())
+            {               
+                using (BinaryWriter writer = new BinaryWriter(stream))
+                {
+                    writer.Write(bytes);
+
+                    writer.Write(WaveSlotID);
+
+                    writer.Write(UnkID);
+
+                    writer.Write(UnkSubHash);
+
+                    writer.Write(WaveSlotIndex);
+                }
+
+                return stream.ToArray();
+            }
+        }
+
         public override int Deserialize(byte[] data)
         {
             var bytesRead = base.Deserialize(data);
@@ -39,17 +62,17 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             builder.AppendLine("Unk ID: " + UnkID);
 
-            builder.AppendLine("Unk Hash: 0x" + UnkHash.ToString("X"));
+            builder.AppendLine("Unk Hash: 0x" + UnkSubHash.ToString("X"));
 
             builder.AppendLine("Wave Slot Num: " + WaveSlotIndex);
 
             return builder.ToString();
         }
 
-        public audSimpleSound(string str) : base(str)
+        public audSimpleSound(RageDataFile parent, string str) : base(parent, str)
         { }
 
-        public audSimpleSound(uint hashName) : base(hashName)
+        public audSimpleSound(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
 
         public audSimpleSound()

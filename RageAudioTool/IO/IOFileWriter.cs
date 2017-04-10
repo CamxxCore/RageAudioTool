@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Text;
 using System.IO;
+using System.Text;
 
 namespace RageAudioTool.IO
 {
-    public class IOFileWriter : BinaryWriter
+    public class IOBinaryWriter : BinaryWriter
     {
-        public IOFileWriter(Stream output, Encoding encoding) : base(output, encoding)
+        public IOBinaryWriter(Stream output) : base(output)
         { }
 
-        public override void Write(string value)
-        {
-            base.Write(value.ToBytes());
-        }
+        public IOBinaryWriter(Stream output, Encoding encoding) : base(output, encoding)
+        { }
 
         public void WriteFormat(string format, params object[] args)
         {
@@ -35,6 +33,12 @@ namespace RageAudioTool.IO
         public void WriteLine(string value)
         {
             WriteLine(value, 1);
+        }
+
+        public void WriteANSI(string value)
+        {
+            Write(value.ToBytes());
+            Write((byte)0);
         }
     }
 }

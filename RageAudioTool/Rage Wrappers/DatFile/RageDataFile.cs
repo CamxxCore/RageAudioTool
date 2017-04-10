@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 using RageAudioTool.IO;
+using RageAudioTool.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -17,35 +19,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         Dat151_Parameters = 151
     }
 
-    public class RageDataFileReadReference : IOFileReader
-    {
-        public RageDataFile FileObject { get; set; }
-        public string Path { get; private set; }
-
-        public RageDataFileReadReference(string path) : 
-            base(File.Open(path, FileMode.Open), Encoding.GetEncoding(1252))
-        {
-            FileObject = null;
-            Path = path;
-        }
-    }
-
-    public class RageDataFileWriteReference : IOFileWriter
-    {
-        public RageDataFile FileObject { get; set; }
-        public string Path { get; private set; }
-
-        public RageDataFileWriteReference(string path) : 
-            base(File.Open(path, FileMode.Open), Encoding.GetEncoding(1252))
-        {   
-            FileObject = null;
-            Path = path;
-        }
-    }
-
-    public class RageDataFile
+    public abstract class RageDataFile : IDisposable
     {    
-        public RageAudioMetadataFileType Type { get; private set; }
+        public RageAudioMetadataFileType Type { get; set; }
 
         public string[] StringTable { get; set; }
 
@@ -55,67 +31,214 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public int StringSectionSize { get; private set; }
 
-        public Dictionary<uint, string> NametableObjects = new Dictionary<uint, string>();
+        public audDataBase[] DataItems { get; set; }
+
+        public audHash[] HashItems { get; set; }
+
+        public audHash[] HashItems1 { get; set; }
+
+        public Dictionary<uint, string> Nametable =
+            new Dictionary<uint, string>();
 
         public RageDataFile()
         { }
 
         public virtual void Read(RageDataFileReadReference file)
         {
+            file.FileObject = this;
+
             Type = (RageAudioMetadataFileType) file.ReadInt32();
 
             if (!Enum.IsDefined(typeof(RageAudioMetadataFileType), Type))
                 throw new FileFormatException("[RageAudioMetadata] Invalid file type: " + Type);
 
-            NametablePresent = File.Exists(file.Path + ".nametable");
+            string nametablePath = Path.ChangeExtension(file.Path, ".nametable");
 
-            if (NametablePresent)
-            {
-                using (var reader = new BinaryReader(File.Open(file.Path + ".nametable", FileMode.Open)))
-                {
-                    char result;
+            NametablePresent = File.Exists(nametablePath);
 
-                    string text = string.Empty;
+            if (NametablePresent) ReadNametableItems(nametablePath);
 
-                    while (true)
-                    {
-                        if (reader.BaseStream.Position >= reader.BaseStream.Length)
-                            break;
-
-                        text = string.Empty;
-
-                        while ((result = reader.ReadChar()) != '\0')
-                        {
-                            text += char.ToLower(result);
-                        }
-
-                        NametableObjects.Add(text.HashKey(), text);
-                    }
-                }
-            }
-
-            var toRead = file.ReadInt32(); //0x4-0x8
+            var toRead = file.ReadInt32(); //0x4-0x8         
 
             DataSection = file.ReadBytes(toRead);
 
-            StringSectionSize = file.ReadInt32(); // size of entire string table section indexes + strings
+            StringSectionSize = file.ReadInt32() - 4; // size of entire string table section indexes + strings
 
-            StringSectionSize -= 4;
+            var tableSize = file.ReadInt32(); // strings in string table
 
-            var stringTableSize = file.ReadInt32(); // strings in string table
+            StringTable = ReadStringSection(file, StringSectionSize, tableSize);
 
-            StringTable = ReadStringSection(file, StringSectionSize, stringTableSize);
+            var itemCount = file.ReadInt32();
 
-            file.FileObject = this;
+            DataItems = ReadDataItems(file, itemCount);
+
+            itemCount = file.ReadInt32();
+
+            HashItems = ReadHashItems(file, itemCount);
+
+            itemCount = file.ReadInt32();
+
+            HashItems1 = ReadHashItems1(file, itemCount);
+
+            
         }
 
         public virtual void Write(RageDataFileWriteReference file)
         {
+            CreateDataSection();
+
             file.Write((int)Type);
+
             file.Write(DataSection.Length);
+
             file.Write(DataSection);
+
             file.Write(StringSectionSize + 4);
+
             file.Write(StringTable.Length);
+
+            WriteStringSection(file);
+
+            file.Write(DataItems.Length);
+
+            WriteDataOffsets(file);
+
+            file.Write(HashItems.Length);
+
+            WriteHashOffsets(file);
+
+            file.Write(HashItems1.Length);
+
+            WriteHashOffsets1(file);
+        }
+
+        private void ReadNametableItems(string nametablePath)
+        {
+            using (var reader = new BinaryReader(File.Open(nametablePath, FileMode.Open)))
+            {
+                char result;
+
+                string text = string.Empty;
+
+                while (true)
+                {
+                    if (reader.BaseStream.Position >= reader.BaseStream.Length)
+                        break;
+
+                    text = string.Empty;
+
+                    while ((result = reader.ReadChar()) != '\0')
+                    {
+                        text += result;
+                    }
+
+                    if (!Nametable.ContainsValue(text))
+                    {
+                        Nametable.Add(text.HashKey(), text);
+                    }
+
+                    else System.Windows.Forms.MessageBox.Show("Ignoring duplicate entry \"" + text + "\" in \"" + nametablePath);      
+                }
+            }
+        }
+
+        public abstract audDataBase[] ReadDataItems(RageDataFileReadReference file, int numItems);
+
+        public virtual audHash[] ReadHashItems(RageDataFileReadReference file, int itemCount)
+        {
+            var items = new audHash[itemCount];
+
+            byte[] buffer = new byte[0x4];
+
+            for (int i = 0; i < itemCount; i++)
+            {
+                var offset = file.ReadInt32();
+
+                offset -= 8;
+
+                Buffer.BlockCopy(DataSection, offset, buffer, 0, 4);
+
+                items[i] = new audHash(this);
+
+                items[i].Deserialize(buffer);
+
+                items[i].FileOffset = offset;
+
+                items[i].Length = 4;
+            }
+
+            return items;
+        }
+
+        public virtual audHash[] ReadHashItems1(RageDataFileReadReference file, int itemCount)
+        {
+            var items = new audHash[itemCount];
+
+            byte[] buffer = new byte[0x4];
+
+            for (int i = 0; i < itemCount; i++)
+            {
+                var offset = file.ReadInt32();
+
+                offset -= 8;
+
+                Buffer.BlockCopy(DataSection, offset, buffer, 0, 4);
+
+                items[i] = new audHash(this);
+
+                items[i].Deserialize(buffer);
+
+                items[i].FileOffset = offset;
+
+                items[i].Length = 4;
+            }
+
+            return items;
+        }
+
+        private void CreateDataSection()
+        {
+            foreach (var item in DataItems)
+            {
+                var bytes = item.Serialize();
+
+                Buffer.BlockCopy(bytes, 0, DataSection, item.FileOffset, bytes.Length);
+            }           
+            
+         /*   var dataEntries = DataItems.Concat(HashItems).Concat(HashItems1);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(ms))
+                {
+                    foreach (audDataBase item in dataEntries)
+                    {
+                        item.FileOffset = (int)writer.BaseStream.Position;
+
+                        writer.Write(item.Serialize());
+                    }
+                }
+
+                DataSection = ms.ToArray();
+            }*/
+        }
+
+        protected abstract void WriteDataOffsets(RageDataFileWriteReference file);
+
+        protected void WriteHashOffsets(RageDataFileWriteReference file)
+        {
+            foreach (audDataBase item in HashItems)
+            {
+                file.Write(item.FileOffset + 8);
+            }
+        }
+
+        protected void WriteHashOffsets1(RageDataFileWriteReference file)
+        {
+            foreach (audDataBase item in HashItems1)
+            {
+                file.Write(item.FileOffset + 8);
+            }
         }
 
         private string[] ReadStringSection(RageDataFileReadReference file, int dataSize, int stringCount)
@@ -129,7 +252,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             string[] result = new string[stringCount];
 
             for (int i = 0; i < stringCount; i++) // read string table
-            {      
+            {
                 var strOffset = file.ReadInt32();
 
                 long currentPos = file.BaseStream.Position;
@@ -144,6 +267,53 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             file.BaseStream.Seek(stringDataEnd, SeekOrigin.Begin);
 
             return result;
-        }   
+        }
+
+        private void WriteStringSection(RageDataFileWriteReference file)
+        {
+            List<int> indices = new List<int>();
+
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
+                {
+                    for (int i = 0; i < StringTable.Length; i++)
+                    {
+                        file.Write((int)writer.BaseStream.Position); // write string offset
+
+                        writer.WriteANSI(StringTable[i]);                  
+                    }
+                }
+
+                file.Write(stream.ToArray()); // write string data
+            }
+        }
+
+        public void Dispose()
+        {
+            if (DataSection != null)
+            {
+                Array.Clear(DataSection, 0, DataSection.Length);
+            }
+
+            if (DataItems != null)
+            {
+                Array.Clear(DataItems, 0, DataItems.Length);
+            }
+
+            if (HashItems != null)
+            {
+                Array.Clear(HashItems, 0, HashItems.Length);
+            }
+
+            if (HashItems1 != null)
+            {
+                Array.Clear(HashItems1, 0, HashItems1.Length);
+            }
+
+            StringSectionSize = 0;
+
+            Nametable.Clear();
+        }
     }
 }

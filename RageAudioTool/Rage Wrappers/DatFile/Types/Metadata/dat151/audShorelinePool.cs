@@ -2,26 +2,26 @@
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public class audShorelineLakeMetadata : audSoundBase
+    struct floatPair
     {
-      //  int dataCount;
+        public float A, B;
+    }
 
+    public class audShorelinePoolMetadata : audSoundBase
+    {
         floatPair[] unkData;
 
-        public audShorelineLakeMetadata(string str) : base(str)
+        public audShorelinePoolMetadata(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
 
-        public audShorelineLakeMetadata(uint hashName) : base(hashName)
-        { }
-
-        public audShorelineLakeMetadata()
+        public audShorelinePoolMetadata()
         { }
 
         public override int Deserialize(byte[] data)
         {
-            var bytesRead = base.Deserialize(data);
+            //var bytesRead = base.Deserialize(data);
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
             {
                 var count = reader.ReadInt16(); //0x40
 
@@ -42,7 +42,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                     };
 
 
-                    System.Windows.Forms.MessageBox.Show(unkData[i].A.ToString() + " " + unkData[i].B.ToString());
+                    //System.Windows.Forms.MessageBox.Show(unkData[i].A.ToString() + " " + unkData[i].B.ToString());
+
                 }
             }
 

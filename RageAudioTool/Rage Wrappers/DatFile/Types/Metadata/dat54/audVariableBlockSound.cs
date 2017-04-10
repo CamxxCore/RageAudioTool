@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using RageAudioTool.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -7,7 +8,37 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
     {
         public int Unk;
 
-        public audVariable[] Variables { get; set; }
+        public audSoundVariable[] Variables { get; set; }
+
+        public override byte[] Serialize()
+        {
+            var bytes = base.Serialize();
+
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(stream))
+                {
+                    writer.Write(bytes);
+
+                    writer.Write(Unk);
+
+                    writer.Write((byte)Variables.Length);
+
+                    for (int i = 0; i < Variables.Length; i++)
+                    {
+                        writer.Write(Variables[i].Name.HashKey);
+
+                        writer.Write(Variables[i].Value);
+
+                        writer.Write(Variables[i].UnkFloat);
+
+                        writer.Write(Variables[i].Flags);
+                    }
+                }
+
+                return stream.ToArray();
+            }
+        }
 
         public override int Deserialize(byte[] data)
         {
@@ -19,19 +50,13 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 int numItems = reader.ReadByte();
 
-                Variables = new audVariable[numItems];
+                Variables = new audSoundVariable[numItems];
 
                 for (int i = 0; i < numItems; i++)
                 {
-                    Variables[i] = new audVariable();
+                    Variables[i] = new audSoundVariable(parent, string.Empty);
 
-                    Variables[i].HashName = reader.ReadUInt32();
-
-                    Variables[i].DefaultValue = reader.ReadSingle();
-
-                    Variables[i].Unk = reader.ReadSingle();
-
-                    Variables[i].Flags = reader.ReadByte();          
+                    Variables[i].Deserialize(reader.ReadBytes(0xD));    
                 }
             }
 
@@ -47,32 +72,22 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             for (int i = 0; i < Variables.Length; i++)
             {
                 builder.AppendLine("\n[Variable " + i + "]");
-                builder.AppendLine("Hash: 0x" + Variables[i].HashName.ToString("X"));
-                builder.AppendLine("Default Value: " + Variables[i].DefaultValue);
-                builder.AppendLine("Secondary Value: " + Variables[i].Unk);       
+                builder.AppendLine("Name: " + Variables[i].Name.ToString());
+                builder.AppendLine("Value: " + Variables[i].Value);
+                builder.AppendLine("Unk Float: " + Variables[i].UnkFloat);
+                builder.AppendLine("Flags: " + Variables[i].Flags);
             }
 
             return builder.ToString();
         }
 
-        public audVariableBlockSound(string str) : base(str)
+        public audVariableBlockSound(RageDataFile parent, string str) : base(parent, str)
         { }
 
-        public audVariableBlockSound(uint hashName) : base(hashName)
+        public audVariableBlockSound(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
 
         public audVariableBlockSound()
         { }
-
-        public struct audVariable
-        {
-            public uint HashName { get; set; }
-
-            public float DefaultValue { get; set; }
-
-            public float Unk { get; set; }
-
-            public byte Flags { get; set; }
-        }
     }
 }

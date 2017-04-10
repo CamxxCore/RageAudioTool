@@ -1,39 +1,48 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.IO;
+using System.Xml.Serialization;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audEnvelopeSound : audSoundBase
     {
-        public ushort Unk { get; set; }
+        //      public ushort Unk { get; set; }
 
-        public ushort UnkSub1 { get; set; }
+        //    public ushort UnkSub1 { get; set; }
 
-        public uint UnkSubHash { get; set; }
+        //     public uint UnkSubHash { get; set; }
+
+        [XmlElement(DataType = "hexBinary")]
+        public byte[] Data { get; set; }
+
+        public override byte[] Serialize()
+        {
+            var bytes = base.Serialize();
+
+            Buffer.BlockCopy(bytes, 0, Data, 0, bytes.Length);
+
+            return Data;
+        }
 
         public override int Deserialize(byte[] data)
         {
-            var bytesRead = base.Deserialize(data);
+            int bytesRead = base.Deserialize(data);
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
-            {
-                
-            }
+            Data = data;
 
             return data.Length;
         }
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
-
-            return builder.ToString();
+            return BitConverter.ToString(Data).Replace("-", "");
         }
 
-        public audEnvelopeSound(string str) : base(str)
+        public audEnvelopeSound(RageDataFile parent, string str) : base(parent, str)
         { }
 
-        public audEnvelopeSound(uint hashName) : base(hashName)
+        public audEnvelopeSound(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
 
         public audEnvelopeSound()
