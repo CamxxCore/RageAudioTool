@@ -1,15 +1,16 @@
 ﻿using System.IO;
+using RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    struct floatPair
+    struct FloatPair
     {
         public float A, B;
     }
 
     public class audShorelinePoolMetadata : audSoundBase
     {
-        floatPair[] unkData;
+        FloatPair[] _unkData;
 
         public audShorelinePoolMetadata(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
@@ -27,7 +28,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 reader.ReadInt16();
 
-                unkData = new floatPair[count];
+                _unkData = new FloatPair[count];
 
                 for (int i = 0; i < count; i++)
                 {
@@ -35,7 +36,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                     var floatB = reader.ReadSingle();
 
-                    unkData[i] = new floatPair
+                    _unkData[i] = new FloatPair
                     {
                         A = floatA,
                         B = floatB

@@ -2,7 +2,7 @@
 
 namespace RageAudioTool.Interfaces
 {
-    interface IXMLSerializable
+    interface IXmlSerializable
     {
         XmlDocument ToXml();
     }

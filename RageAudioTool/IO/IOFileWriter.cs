@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace RageAudioTool.IO
@@ -19,9 +20,7 @@ namespace RageAudioTool.IO
 
         public void WriteLine(string value, int numTrailingLineSpaces)
         {
-            if (numTrailingLineSpaces < 1)
-                numTrailingLineSpaces = 1;
-            value += Environment.NewLine;
+            value += Enumerable.Repeat(Environment.NewLine, numTrailingLineSpaces);
             Write(value);
         }
 
@@ -35,7 +34,7 @@ namespace RageAudioTool.IO
             WriteLine(value, 1);
         }
 
-        public void WriteANSI(string value)
+        public void WriteAnsi(string value)
         {
             Write(value.ToBytes());
             Write((byte)0);

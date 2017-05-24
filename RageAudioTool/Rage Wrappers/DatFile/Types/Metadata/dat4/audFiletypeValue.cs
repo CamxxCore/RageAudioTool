@@ -1,7 +1,6 @@
-﻿using System;
+﻿using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
-using System.ComponentModel;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {

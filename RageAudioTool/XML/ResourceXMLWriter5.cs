@@ -1,22 +1,23 @@
 ﻿using System;
-using System.Xml;
 using System.Runtime.CompilerServices;
+using System.Xml;
 using System.Xml.Serialization;
+using RageAudioTool.Rage_Wrappers.DatFile;
 
-namespace RageAudioTool.Rage_Wrappers.DatFile.XML
+namespace RageAudioTool.XML
 {
-    public class ResourceXMLWriter5
+    public class ResourceXmlWriter5
     {
-        private string filename;
+        private string _filename;
 
-        public ResourceXMLWriter5(string filename)
+        public ResourceXmlWriter5(string filename)
         {
-            this.filename = filename;
+            this._filename = filename;
         }
 
         public void WriteData(RageAudioMetadata5 data)
         {
-            using (var writer = XmlWriter.Create(filename, new XmlWriterSettings() { Indent = true }))
+            using (var writer = XmlWriter.Create(_filename, new XmlWriterSettings() { Indent = true }))
             {
                 writer.WriteStartDocument();
 

@@ -4,7 +4,7 @@ using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public sealed class RageDataFileReadReference : IOFileReader
+    public sealed class RageDataFileReadReference : IoFileReader
     {
         public RageDataFile FileObject { get; set; }
 

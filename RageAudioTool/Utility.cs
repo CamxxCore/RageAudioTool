@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Text;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using RageAudioTool.Types;
 
 namespace RageAudioTool
 {
-   public static class Utility
+    public static class Utility
     {
         public static void DebugPrint(string msg)
         {
@@ -78,55 +78,20 @@ namespace RageAudioTool
             return Marshal.SizeOf(type);
         }
     }
-}
 
-[TypeConverter(typeof(ValueTypeConverter))]
-public struct HashString
-{
-    public uint HashKey { get; set; }
 
-    public string HashName { get; set; }
-
-    public HashString(uint hashKey)
+    public class Pair<T1, T2>
     {
-        HashKey = hashKey;
-        HashName = string.Format("0x{0}", HashKey.ToString("X"));
-    }
+        public Pair()
+        {}
 
-    public HashString(string hashName)
-    {
-        HashName = hashName;
-        HashKey = RageAudioTool.Utility.HashKey(hashName);
-    }
+        public Pair(T1 first, T2 second)
+        {
+            First = first;
+            Second = second;
+        }
 
-    public static implicit operator string(HashString hs)
-    {
-        return hs.HashName;
+        public T1 First { get; set; }
+        public T2 Second { get; set; }
     }
-
-    public static implicit operator uint(HashString hs)
-    {
-        return hs.HashKey;
-    }
-
-    public static implicit operator HashString(uint hashKey)
-    {
-        return new HashString(hashKey);
-    }
-
-    public static implicit operator HashString(string hashName)
-    {
-        return new HashString(hashName);
-    }
-
-    public override string ToString()
-    {
-        return HashName;
-    }
-}
-
-public class Pair<T1, T2>
-{
-    public T1 First { get; set; }
-    public T2 Second { get; set; }
 }

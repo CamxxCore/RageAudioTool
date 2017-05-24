@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -9,7 +8,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public short Unk { get; set; }
 
-        private int type;
+        private int _type;
 
         public audShorelineList(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
@@ -23,7 +22,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             {
                 using (BinaryWriter writer = new BinaryWriter(stream))
                 {
-                    writer.Write(type);
+                    writer.Write(_type);
 
                     writer.Write((short)Items.Length);
 
@@ -43,7 +42,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
             {
-                type = reader.ReadInt32();
+                _type = reader.ReadInt32();
 
                 int itemsCount = reader.ReadInt16();
 

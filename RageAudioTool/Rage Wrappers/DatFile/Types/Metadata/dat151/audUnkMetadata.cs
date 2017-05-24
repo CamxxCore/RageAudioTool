@@ -1,10 +1,11 @@
 ﻿using System.IO;
+using RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audUnkMetadata : audSoundBase
     {
-        floatPair[] unkData;
+        FloatPair[] _unkData;
 
         public audUnkMetadata(RageDataFile parent, string str) : base(parent, str)
         { }
@@ -25,7 +26,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 var count = reader.ReadChar();
 
-                unkData = new floatPair[count];
+                _unkData = new FloatPair[count];
 
                 for (int i = 0; i < count; i++)
                 {
@@ -33,7 +34,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                     var floatB = reader.ReadSingle();
 
-                    unkData[i] = new floatPair
+                    _unkData[i] = new FloatPair
                     {
                         A = floatA,
                         B = floatB

@@ -1,38 +1,42 @@
 ﻿using System;
 using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata;
 
-namespace RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata.speech
+namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public class audSpeechData : audSoundBase
+    public class audUnkSound : audSoundBase
     {
         [XmlElement(DataType = "hexBinary")]
         public byte[] Data { get; set; }
 
         public override byte[] Serialize()
         {
+            var bytes = base.Serialize();
+
             return Data;
         }
 
         public override int Deserialize(byte[] data)
         {
+            int bytesRead = base.Deserialize(data);
+
             Data = data;
 
             return data.Length;
         }
 
+
         public override string ToString()
         {
-            return BitConverter.ToString(Data).Replace("-", "");
+            return "";//BitConverter.ToString(Data).Replace("-", "");
         }
 
-        public audSpeechData(RageDataFile parent, string str) : base(parent, str)
+        public audUnkSound(RageDataFile parent, string str) : base(parent, str)
         { }
 
-        public audSpeechData(RageDataFile parent, uint hashName) : base(parent, hashName)
+        public audUnkSound(RageDataFile parent, uint hashName) : base(parent, hashName)
         { }
 
-        public audSpeechData()
+        public audUnkSound()
         { }
     }
 }

@@ -1,11 +1,11 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audVariableList : audFiletypeValue
     {
-        public Pair<HashString, byte[]>[] Items { get; set; }
+        public Pair<audHashString, byte[]>[] Items { get; set; }
 
         public override byte[] Serialize()
         {
@@ -39,15 +39,15 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             {
                 int itemsCount = reader.ReadInt32();
 
-                Items = new Pair<HashString, byte[]>[itemsCount];
+                Items = new Pair<audHashString, byte[]>[itemsCount];
 
                 for (int i = 0; i < itemsCount; i++)
                 {
-                    Items[i] = new Pair<HashString, byte[]>();
-
-                    Items[i].First = reader.ReadUInt32();
-
-                    Items[i].Second = reader.ReadBytes(4);
+                    Items[i] = new Pair<audHashString, byte[]>
+                    {
+                        First = new audHashString(parent, reader.ReadUInt32()),
+                        Second = reader.ReadBytes(4)
+                    };
                 }
             }
 

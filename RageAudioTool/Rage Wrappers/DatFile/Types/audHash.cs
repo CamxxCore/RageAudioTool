@@ -3,12 +3,11 @@ using System.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public class audHash : audFiletypeValue<uint>
+    public class audHash : audFiletypeValue<audHashString>
     {
         public override int Deserialize(byte[] data)
         {
-            Value = BitConverter.ToUInt32(data, 0);
-
+            Value = new audHashString(parent, BitConverter.ToUInt32(data, 0));
             return data.Length;
         }
 
@@ -18,17 +17,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             {
                 using (BinaryWriter writer = new BinaryWriter(stream))
                 {
-
-                    writer.Write(Value);
+                    writer.Write(Value.HashKey);
                 }
 
                 return stream.ToArray();
             }
-        }
-
-        public override string ToString()
-        {
-            return string.Format("0x{0}", Value.ToString("X"));
         }
 
         public audHash(RageDataFile parent) : base(parent)
@@ -37,13 +30,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         public audHash(RageDataFile parent, uint data) : base(parent, data)
         { }
 
-        public audHash(RageDataFile parent, string name) : base(parent, name)
-        { }
-
-        public audHash(RageDataFile parent, uint hashKey, uint data) : base(parent, hashKey, data)
-        { }
-
-        public audHash(RageDataFile parent, string name, uint data) : base(parent, name, data)
+        public audHash(RageDataFile parent, uint hashKey, audHashString data) : base(parent, hashKey, data)
         { }
     }
 }

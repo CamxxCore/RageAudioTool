@@ -3,18 +3,19 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;    
 using RageAudioTool.Rage_Wrappers.DatFile;
-using RageAudioTool.Rage_Wrappers.DatFile.XML;
 using System.Data;
+using RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata;
+using RageAudioTool.XML;
 
 namespace RageAudioTool
 {
     public partial class MainForm : Form
     {
-        string filename = string.Empty;
+        string _filename = string.Empty;
 
-        private RageDataFile currentFile = null;
+        private RageDataFile _currentFile = null;
 
-        NametableEditor subForm;
+        NametableEditor _subForm;
 
         public MainForm()
         {
@@ -41,7 +42,7 @@ namespace RageAudioTool
 
          // File.WriteAllText(Path.ChangeExtension(filename, ".txt"), md.ToString());
 
-           var xml = new ResourceXMLWriter5(Path.ChangeExtension(filename, ".xml"));
+           var xml = new ResourceXmlWriter5(Path.ChangeExtension(filename, ".xml"));
 
              xml.WriteData(md);
 
@@ -54,25 +55,25 @@ namespace RageAudioTool
 
         private void FillDataTable()
         {
-            if (currentFile != null && File.Exists(filename))
+            if (_currentFile != null && File.Exists(_filename))
             {
-                currentFile.Dispose();
+                _currentFile.Dispose();
 
-                using (RageDataFileReadReference file = new RageDataFileReadReference(filename))
+                using (RageDataFileReadReference file = new RageDataFileReadReference(_filename))
                 {
-                    currentFile.Read(file);
+                    _currentFile.Read(file);
                 }
 
                 DataTable dt = new DataTable();
 
-                if (currentFile is RageAudioMetadata4)
+                if (_currentFile is RageAudioMetadata4)
                 {
                     dt.Columns.Add("Type");
                     dt.Columns.Add("Name");
 
-                    for (int i = 0; i < currentFile.DataItems.Length; i++)
+                    for (int i = 0; i < _currentFile.DataItems.Length; i++)
                     {
-                        var item = currentFile.DataItems[i];
+                        var item = _currentFile.DataItems[i];
 
                         dt.Rows.Add(new string[] { item.GetType().Name, item.Name.ToString() });
                     }
@@ -89,16 +90,16 @@ namespace RageAudioTool
                 else
                 {
                     dt.Columns.Add("Type");
-                    dt.Columns.Add("Category");
+                 //   dt.Columns.Add("Category");
                     dt.Columns.Add("Name");
 
-                    for (int i = 0; i < currentFile.DataItems.Length; i++)
+                    for (int i = 0; i < _currentFile.DataItems.Length; i++)
                     {
-                        var item = currentFile.DataItems[i];
+                        var item = _currentFile.DataItems[i];
 
-                        string category = ((item is audSoundBase) ? (item as audSoundBase).CategoryName.HashName : "N/A");
+                      //  string category = ((item is audSoundBase) ? (item as audSoundBase).Header.CategoryHash.HashName : "N/A");
 
-                        dt.Rows.Add(new string[] { item.GetType().Name, category, item.Name.ToString() });
+                        dt.Rows.Add(new string[] { item.GetType().Name, item.Name.ToString() });
                     }
 
                     dataGridView1.DataSource = dt;
@@ -114,9 +115,9 @@ namespace RageAudioTool
 
         private void button1_Click(object sender, EventArgs e)
         {
-            filename = string.Empty;
+            _filename = string.Empty;
 
-            currentFile = null;
+            _currentFile = null;
 
             using (var ofd = 
                 new OpenFileDialog() { Multiselect = true,
@@ -130,21 +131,21 @@ namespace RageAudioTool
                     case DialogResult.Cancel: break;
                     case DialogResult.OK:
 
-                        filename = ofd.FileName;
+                        _filename = ofd.FileName;
 
-                        Text = "RageAudioTool - [" + filename + "]";
+                        Text = "RageAudioTool - [" + _filename + "]";
 
-                        if (filename.EndsWith(".dat54.rel") ||
-                            filename.EndsWith(".dat151.rel") ||
-                            Path.GetFileNameWithoutExtension(filename) == "speech2.dat4" ||
-                            Path.GetFileNameWithoutExtension(filename) == "speech.dat4")
+                        if (_filename.EndsWith(".dat54.rel") ||
+                            _filename.EndsWith(".dat151.rel") ||
+                            Path.GetFileNameWithoutExtension(_filename) == "speech2.dat4" ||
+                            Path.GetFileNameWithoutExtension(_filename) == "speech.dat4")
                         {
-                            currentFile = new RageAudioMetadata5();
+                            _currentFile = new RageAudioMetadata5();
                         }
 
-                        else if (filename.EndsWith(".dat4.rel"))
+                        else if (_filename.EndsWith(".dat4.rel"))
                         {
-                            currentFile = new RageAudioMetadata4();
+                            _currentFile = new RageAudioMetadata4();
                         }
 
                         break;
@@ -211,9 +212,9 @@ namespace RageAudioTool
 
         private void dataGridView1_SelectedItemChanged(object sender, EventArgs e)
         {
-            if (currentFile == null ||
+            if (_currentFile == null ||
                 dataGridView1.SelectedRows.Count < 1 ||
-                dataGridView1.SelectedRows[0].Index > currentFile.DataItems.Length)
+                dataGridView1.SelectedRows[0].Index > _currentFile.DataItems.Length)
                 return;
 
             DataGridViewRow selectedRow = dataGridView1.SelectedRows[0];
@@ -222,20 +223,20 @@ namespace RageAudioTool
 
             var realRowIdx = dt.Rows.IndexOf(((DataRowView)selectedRow.DataBoundItem).Row);
                
-            propertyGrid1.SelectedObject = currentFile.DataItems[realRowIdx];
+            propertyGrid1.SelectedObject = _currentFile.DataItems[realRowIdx];
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (currentFile != null)
+            if (_currentFile != null)
             {
-                var extension = Path.GetExtension(filename);
+                var extension = Path.GetExtension(_filename);
 
                 string filter = string.Format("RAGE Audio File (*{0})|*{0}|XML File (*.xml)|*.xml|Text file (*.txt)|*.txt|All files (*.*)|*.*", extension);
 
                 using (var sfd = new SaveFileDialog { Filter = filter })
                 {
-                    sfd.FileName = Path.GetFileName(filename);
+                    sfd.FileName = Path.GetFileName(_filename);
 
                     var result = sfd.ShowDialog();
 
@@ -248,7 +249,7 @@ namespace RageAudioTool
 
                             if (ext == ".xml")
                             {
-                                if (currentFile is RageAudioMetadata4)
+                                if (_currentFile is RageAudioMetadata4)
                                 {
                                     MessageBox.Show("Error: Exporting of this format to xml is not yet supported.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
@@ -259,24 +260,21 @@ namespace RageAudioTool
                                     // xml.WriteData(currentFile as RageAudioMetadata5);
                                 }
 
-                                else
-                                {
-                                    var xml = new ResourceXMLWriter5(Path.ChangeExtension(sfd.FileName, ".xml"));
+                                var xml = new ResourceXmlWriter5(Path.ChangeExtension(sfd.FileName, ".xml"));
 
-                                    xml.WriteData(currentFile as RageAudioMetadata5);
-                                }
+                                xml.WriteData(_currentFile as RageAudioMetadata5);
                             }
 
                             else if (ext == ".txt")
                             {
-                                File.WriteAllText(Path.ChangeExtension(sfd.FileName, ".txt"), currentFile.ToString());
+                                File.WriteAllText(Path.ChangeExtension(sfd.FileName, ".txt"), _currentFile.ToString());
                             }
 
                             else
                             {
                                 using (RageDataFileWriteReference file = new RageDataFileWriteReference(sfd.FileName))
                                 {
-                                    currentFile.Write(file);
+                                    _currentFile.Write(file);
                                 }
                             }
 
@@ -313,17 +311,17 @@ namespace RageAudioTool
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if (subForm == null || subForm.IsDisposed)
+            if (_subForm == null || _subForm.IsDisposed)
             {
-                subForm = new NametableEditor();
+                _subForm = new NametableEditor();
             }
 
-            if (!subForm.Visible)
+            if (!_subForm.Visible)
             {
-                subForm.NametableFilename =
-                    Path.ChangeExtension(filename, ".nametable");
+                _subForm.NametableFilename =
+                    Path.ChangeExtension(_filename, ".nametable");
 
-                subForm.Show();
+                _subForm.Show();
             }
         }
 

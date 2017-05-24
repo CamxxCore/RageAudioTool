@@ -1,12 +1,11 @@
 ﻿using System.Text;
 using System.IO;
+using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audMultitrackSound : audSoundBase
     {
-        public uint[] SoundNames { get; set; }
-
         public override byte[] Serialize()
         {
             var bytes = base.Serialize();
@@ -17,11 +16,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                 {
                     writer.Write(bytes);
 
-                    writer.Write((byte)SoundNames.Length);
+                    writer.Write(((byte)AudioTracks.Count));
 
-                    for (int i = 0; i < SoundNames.Length; i++)
+                    for (int i = 0; i < AudioTracks.Count; i++)
                     {
-                        writer.Write(SoundNames[i]);
+                        writer.Write(AudioTracks[i].HashKey);
                     }
                 }
 
@@ -37,11 +36,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             {
                 int numItems = reader.ReadByte();
 
-                SoundNames = new uint[numItems];
-
                 for (int i = 0; i < numItems; i++)
                 {
-                    SoundNames[i] = reader.ReadUInt32();
+                    AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
                 }
             }
 
@@ -52,9 +49,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             StringBuilder builder = new StringBuilder();
 
-            for (int i = 0; i < SoundNames.Length; i++)
+            for (int i = 0; i < AudioTracks.Count; i++)
             {
-                builder.AppendLine("Hash " + (i + 1) + ": 0x" + SoundNames[i].ToString("X"));
+                builder.AppendLine("Hash " + (i + 1) + ": " + AudioTracks[i]);
             }
 
             return builder.ToString();

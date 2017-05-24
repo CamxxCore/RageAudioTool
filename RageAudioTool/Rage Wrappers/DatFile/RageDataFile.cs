@@ -5,18 +5,20 @@ using System.Text;
 using System.Collections.Generic;
 using RageAudioTool.IO;
 using RageAudioTool.Types;
+using System.ComponentModel;
+using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public enum RageAudioMetadataFileType
     {
         Dat4 = 4,
-        Dat10_ModularSynth = 10,
-        Dat54_DataEntries = 54,
-        Dat15_DynamicMixer,
-        Dat16_Curves = 16,
-        Dat22_Categories = 22,
-        Dat151_Parameters = 151
+        Dat10ModularSynth = 10,
+        Dat54DataEntries = 54,
+        Dat15DynamicMixer,
+        Dat16Curves = 16,
+        Dat22Categories = 22,
+        Dat151Parameters = 151
     }
 
     public abstract class RageDataFile : IDisposable
@@ -78,9 +80,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             itemCount = file.ReadInt32();
 
-            HashItems1 = ReadHashItems1(file, itemCount);
-
-            
+            HashItems1 = ReadHashItems1(file, itemCount);           
         }
 
         public virtual void Write(RageDataFileWriteReference file)
@@ -116,17 +116,14 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             using (var reader = new BinaryReader(File.Open(nametablePath, FileMode.Open)))
             {
-                char result;
-
-                string text = string.Empty;
-
                 while (true)
                 {
                     if (reader.BaseStream.Position >= reader.BaseStream.Length)
                         break;
 
-                    text = string.Empty;
+                    var text = string.Empty;
 
+                    char result;
                     while ((result = reader.ReadChar()) != '\0')
                     {
                         text += result;
@@ -259,7 +256,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 file.BaseStream.Seek(basePos + strOffset, SeekOrigin.Begin);
 
-                result[i] = file.ReadANSI();
+                result[i] = file.ReadAnsi();
 
                 file.BaseStream.Seek(currentPos, SeekOrigin.Begin);
             }
@@ -271,8 +268,6 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         private void WriteStringSection(RageDataFileWriteReference file)
         {
-            List<int> indices = new List<int>();
-
             using (MemoryStream stream = new MemoryStream())
             {
                 using (IOBinaryWriter writer = new IOBinaryWriter(stream))
@@ -281,7 +276,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                     {
                         file.Write((int)writer.BaseStream.Position); // write string offset
 
-                        writer.WriteANSI(StringTable[i]);                  
+                        writer.WriteAnsi(StringTable[i]);                  
                     }
                 }
 

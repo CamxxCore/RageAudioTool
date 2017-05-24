@@ -72,15 +72,19 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Interfaces\IRageAudioFiletype.cs" />
     <Compile Include="Rage Wrappers\DatFile\RageAudioMetadata5.cs" />
     <Compile Include="Rage Wrappers\DatFile\RageAudioMetadata4.cs" />
     <Compile Include="Rage Wrappers\DatFile\RageDataFile.IO.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\audDataBase.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\audSoundHeader.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShoreLine.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShorelineList.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audVariableList.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\audHash.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSoundDef.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSoundVariable.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSoundList.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audUnkSound.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\speech\audSpeechData.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audAutomationSound.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audCollapsingStereoSound.cs" />
@@ -115,9 +119,9 @@
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audVariablePrintValueSound.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audWrapperSound.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat4\audFloat.cs" />
-    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat4\audHash.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat4\audString.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat4\audUInt.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\audHashString.cs" />
     <Compile Include="TempTypes.cs" />
     <Compile Include="Interfaces\ISerializable.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSoundBase.cs" />
@@ -130,6 +134,8 @@
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShorelineLake.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShorelinePool.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audUnkMetadata.cs" />
+    <Compile Include="Types\ElegantExpandableObjectConverter.cs" />
+    <Compile Include="Types\UInt32HexTypeConverter.cs" />
     <Compile Include="Types\ValueTypeConverter.cs" />
     <Compile Include="XML\ResourceXMLReader5.cs" />
     <Compile Include="XML\ResourceXMLWriter5.cs" />
@@ -166,6 +172,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="RAGE_Technology_Group_Logo.svg.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Rage Wrappers\DatFile\Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

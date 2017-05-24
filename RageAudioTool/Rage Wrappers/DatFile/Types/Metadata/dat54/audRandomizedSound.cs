@@ -1,34 +1,45 @@
 ﻿using System;
 using System.Xml.Serialization;
+using System.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audRandomizedSound : audSoundBase
     {
-        [XmlElement(DataType = "hexBinary")]
-        public byte[] Data { get; set; }
+        byte ItemCount { get; set; } //0x0-0x1
+
+        byte DataStart{ get; set; } //0x1-0x2
 
         public override byte[] Serialize()
         {
             var bytes = base.Serialize();
 
-            Buffer.BlockCopy(bytes, 0, Data, 0, bytes.Length);
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(stream))
+                {
+                    writer.Write(bytes);
+                }
 
-            return Data;
+                return stream.ToArray();
+            }
         }
 
         public override int Deserialize(byte[] data)
         {
             int bytesRead = base.Deserialize(data);
 
-            Data = data;
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            {
+            }
 
             return data.Length;
         }
 
+
         public override string ToString()
         {
-            return BitConverter.ToString(Data).Replace("-", "");
+            return "";//BitConverter.ToString(Data).Replace("-", "");
         }
 
         public audRandomizedSound(RageDataFile parent, string str) : base(parent, str)

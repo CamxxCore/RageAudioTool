@@ -1,21 +1,22 @@
 ﻿using System;
-using System.IO;
-using System.Xml;
-using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Serialization;
+using RageAudioTool.Rage_Wrappers.DatFile;
+using RageAudioTool.Rage_Wrappers.DatFile.Types;
+using RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata;
 
-namespace RageAudioTool.Rage_Wrappers.DatFile.XML
+namespace RageAudioTool.XML
 {
-    class ResourceXMLReader5
+    class ResourceXmlReader5
     {
-        private string filename;
+        private string _filename;
 
-        public ResourceXMLReader5(string fileName)
+        public ResourceXmlReader5(string fileName)
         {
-            filename = fileName;
+            _filename = fileName;
         }
 
         public audSoundBase GetDerivedDataType(XmlReader reader, string elementName)
@@ -45,7 +46,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile.XML
         {
             RageAudioMetadata5 data = new RageAudioMetadata5();
 
-            data.Type = RageAudioMetadataFileType.Dat54_DataEntries;
+            data.Type = RageAudioMetadataFileType.Dat54DataEntries;
 
             List<string> stringTable = new List<string>();
 
@@ -55,7 +56,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile.XML
 
             List<audHash> hashItems1 = new List<audHash>();
 
-            using (XmlReader reader = XmlReader.Create(filename))
+            using (XmlReader reader = XmlReader.Create(_filename))
             {
                 reader.ReadToFollowing("stringTable");
 

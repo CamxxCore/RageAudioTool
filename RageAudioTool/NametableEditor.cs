@@ -89,7 +89,7 @@ namespace RageAudioTool
 
                             if (dgvCell.Value != null)
                             {
-                                writer.WriteANSI(((string)dgvCell.Value).ToLower());
+                                writer.WriteAnsi(((string)dgvCell.Value).ToLower());
                             }
                         }
                     }

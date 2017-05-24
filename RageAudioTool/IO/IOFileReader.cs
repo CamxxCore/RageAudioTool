@@ -3,18 +3,18 @@ using System.Text;
 
 namespace RageAudioTool.IO
 {
-    public class IOFileReader : BinaryReader
+    public class IoFileReader : BinaryReader
     {
-        public IOFileReader(Stream input) : base(input)
+        public IoFileReader(Stream input) : base(input)
         { }
 
-        public IOFileReader(Stream input, Encoding encoding) : base(input, encoding)
+        public IoFileReader(Stream input, Encoding encoding) : base(input, encoding)
         { }
 
-        public IOFileReader(byte[] input) : base(new MemoryStream(input))
+        public IoFileReader(byte[] input) : base(new MemoryStream(input))
         { }
 
-        public IOFileReader(byte[] input, Encoding encoding) : base(new MemoryStream(input), encoding)
+        public IoFileReader(byte[] input, Encoding encoding) : base(new MemoryStream(input), encoding)
         { }
 
         public string ReadString(int length)
@@ -29,12 +29,12 @@ namespace RageAudioTool.IO
             return result;
         }
 
-        public static implicit operator Stream(IOFileReader reader)
+        public static implicit operator Stream(IoFileReader reader)
         {
             return reader.BaseStream;
         }
 
-        public string ReadANSI()
+        public string ReadAnsi()
         {
             char c;
             string result = "";

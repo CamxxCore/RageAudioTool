@@ -83,6 +83,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                 items[i].Deserialize(data);
 
                 items[i].FileOffset = offset;
+
+                items[i].Length = length;
             }
 
             return items;
@@ -103,95 +105,97 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private audDataBase CreateDerivedDataType(int dataType, uint hashKey)
         {
-            if (Type == RageAudioMetadataFileType.Dat151_Parameters)
+            if (Type == RageAudioMetadataFileType.Dat151Parameters)
             {
-                switch ((dat151_audMetadataTypes)dataType)
+                switch ((Dat151AudMetadataTypes)dataType)
                 {
                   //  case dat151_audMetadataTypes.ShoreLineLake:
                    //     return new audShorelineLake(this, hashKey);
                    // case dat151_audMetadataTypes.ShoreLinePool:
                      //   return new audShorelinePoolMetadata(this, hashKey);
-                    case dat151_audMetadataTypes.ShoreLineList:
+                    case Dat151AudMetadataTypes.ShoreLineList:
                         return new audShorelineList(this, hashKey);
                     default:
                         return new audByteArray(this, hashKey);
                 }
             }
 
-            else if (Type == RageAudioMetadataFileType.Dat54_DataEntries)
+            if (Type == RageAudioMetadataFileType.Dat54DataEntries)
             {
-                switch ((dat54_audMetadataTypes)dataType)
+                switch ((Dat54AudMetadataTypes)dataType)
                 {
-                    case dat54_audMetadataTypes.LoopingSound:
+                    case Dat54AudMetadataTypes.LoopingSound:
                         return new audLoopingSound(this, hashKey);
-                    case dat54_audMetadataTypes.MultitrackSound:
+                    case Dat54AudMetadataTypes.MultitrackSound:
                         return new audMultitrackSound(this, hashKey);
-                    case dat54_audMetadataTypes.VariableBlockSound:
+                    case Dat54AudMetadataTypes.VariableBlockSound:
                         return new audVariableBlockSound(this, hashKey);
-                    case dat54_audMetadataTypes.SimpleSound:
+                    case Dat54AudMetadataTypes.SimpleSound:
                         return new audSimpleSound(this, hashKey);
-                    case dat54_audMetadataTypes.EnvelopeSound:
+                    case Dat54AudMetadataTypes.EnvelopeSound:
                         return new audEnvelopeSound(this, hashKey);
-                    case dat54_audMetadataTypes.TwinLoopSound:
+                    case Dat54AudMetadataTypes.TwinLoopSound:
                         return new audTwinLoopSound(this, hashKey);
-                    case dat54_audMetadataTypes.SpeechSound:
+                    case Dat54AudMetadataTypes.SpeechSound:
                         return new audSpeechSound(this, hashKey);
-                    case dat54_audMetadataTypes.OnStopSound:
+                    case Dat54AudMetadataTypes.OnStopSound:
                         return new audOnStopSound(this, hashKey);
-                    case dat54_audMetadataTypes.WrapperSound:
+                    case Dat54AudMetadataTypes.WrapperSound:
                         return new audWrapperSound(this, hashKey);
-                    case dat54_audMetadataTypes.SequentialSound:
+                    case Dat54AudMetadataTypes.SequentialSound:
                         return new audSequentialSound(this, hashKey);
-                    case dat54_audMetadataTypes.StreamingSound:
+                    case Dat54AudMetadataTypes.StreamingSound:
                         return new audStreamingSound(this, hashKey);
-                    case dat54_audMetadataTypes.RetriggeredOverlappedSound:
+                    case Dat54AudMetadataTypes.RetriggeredOverlappedSound:
                         return new audRetriggeredOverlappedSound(this, hashKey);
-                    case dat54_audMetadataTypes.CrossfadeSound:
+                    case Dat54AudMetadataTypes.CrossfadeSound:
                         return new audCrossfadeSound(this, hashKey);
-                    case dat54_audMetadataTypes.CollapsingStereoSound:
+                    case Dat54AudMetadataTypes.CollapsingStereoSound:
                         return new audCollapsingStereoSound(this, hashKey);
-                    case dat54_audMetadataTypes.RandomizedSound:
+                    case Dat54AudMetadataTypes.RandomizedSound:
                         return new audRandomizedSound(this, hashKey);
-                    case dat54_audMetadataTypes.EnvironmentSound:
+                    case Dat54AudMetadataTypes.EnvironmentSound:
                         return new audEnvironmentSound(this, hashKey);
-                    case dat54_audMetadataTypes.DynamicEntitySound:
+                    case Dat54AudMetadataTypes.DynamicEntitySound:
                         return new audDynamicEntitySound(this, hashKey);
-                    case dat54_audMetadataTypes.SequentialOverlapSound:
+                    case Dat54AudMetadataTypes.SequentialOverlapSound:
                         return new audSequentialOverlapSound(this, hashKey);
-                    case dat54_audMetadataTypes.ModularSynthSound:
+                    case Dat54AudMetadataTypes.ModularSynthSound:
                         return new audModularSynthSound(this, hashKey);
-                    case dat54_audMetadataTypes.GranularSound:
+                    case Dat54AudMetadataTypes.GranularSound:
                         return new audGranularSound(this, hashKey);
-                    case dat54_audMetadataTypes.DirectionalSound:
+                    case Dat54AudMetadataTypes.DirectionalSound:
                         return new audDirectionalSound(this, hashKey);
-                    case dat54_audMetadataTypes.KineticSound:
+                    case Dat54AudMetadataTypes.KineticSound:
                         return new audKineticSound(this, hashKey);
-                    case dat54_audMetadataTypes.SwitchSound:
+                    case Dat54AudMetadataTypes.SwitchSound:
                         return new audSwitchSound(this, hashKey);
-                    case dat54_audMetadataTypes.VariableCurveSound:
+                    case Dat54AudMetadataTypes.VariableCurveSound:
                         return new audVariableCurveSound(this, hashKey);
-                    case dat54_audMetadataTypes.VariablePrintValueSound:
+                    case Dat54AudMetadataTypes.VariablePrintValueSound:
                         return new audVariablePrintValueSound(this, hashKey);
-                    case dat54_audMetadataTypes.IfSound:
+                    case Dat54AudMetadataTypes.IfSound:
                         return new audIfSound(this, hashKey);
-                    case dat54_audMetadataTypes.MathOperationSound:
+                    case Dat54AudMetadataTypes.MathOperationSound:
                         return new audMathOperationSound(this, hashKey);
-                    case dat54_audMetadataTypes.ParameterTransformSound:
+                    case Dat54AudMetadataTypes.ParameterTransformSound:
                         return new audParameterTransformSound(this, hashKey);
-                    case dat54_audMetadataTypes.FluctuatorSound:
+                    case Dat54AudMetadataTypes.FluctuatorSound:
                         return new audFluctuatorSound(this, hashKey);
-                    case dat54_audMetadataTypes.AutomationSound:
+                    case Dat54AudMetadataTypes.AutomationSound:
                         return new audAutomationSound(this, hashKey);
-                    case dat54_audMetadataTypes.ExternalStreamSound:
+                    case Dat54AudMetadataTypes.ExternalStreamSound:
                         return new audExternalStreamSound(this, hashKey);
-                    case dat54_audMetadataTypes.SoundSet:
+                    case Dat54AudMetadataTypes.SoundSet:
                         return new audSoundSet(this, hashKey);
+                    case Dat54AudMetadataTypes.SoundList:
+                        return new audSoundList(this, hashKey);
                     default:
                         return new audByteArray(this, hashKey);
                 }
             }
 
-            else if (Type == RageAudioMetadataFileType.Dat4)
+            if (Type == RageAudioMetadataFileType.Dat4)
             {
                 return new audByteArray(this, hashKey);
             }

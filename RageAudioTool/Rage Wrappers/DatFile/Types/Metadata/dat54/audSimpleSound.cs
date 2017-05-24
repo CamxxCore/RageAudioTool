@@ -1,16 +1,21 @@
 ﻿using System.Text;
 using System.IO;
+using System.ComponentModel;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audSimpleSound : audSoundBase
     {
-        public uint UnkSubHash { get; set; }
+        [Description("Name of the .wav file")]
+        public audHashString FileName { get; set; }
 
-        public ushort WaveSlotID { get; set; }
+        [Description("Relative path to parent wave container (i.e. STREAMED_VEHICLES_GRANULAR/dune_space)")]
+        public audHashString ContainerName { get; set; }
 
-        public ushort UnkID { get; set; }
+        [Description("ID of wave (.awc) container")]
+        public ushort WaveSlotId { get; set; }
 
+        [Description("Internal index of wave (.awc) container")]
         public byte WaveSlotIndex { get; set; }
 
         public override byte[] Serialize()
@@ -23,11 +28,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                 {
                     writer.Write(bytes);
 
-                    writer.Write(WaveSlotID);
+                    writer.Write(ContainerName.HashKey);
 
-                    writer.Write(UnkID);
-
-                    writer.Write(UnkSubHash);
+                    writer.Write(FileName.HashKey);
 
                     writer.Write(WaveSlotIndex);
                 }
@@ -42,11 +45,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                WaveSlotID = reader.ReadUInt16();
+                ContainerName = new audHashString(parent, reader.ReadUInt32());
 
-                UnkID = reader.ReadUInt16();
+                WaveSlotId = (ushort)(ContainerName.HashKey & 0xFFFF);
 
-                UnkSubHash = reader.ReadUInt32();
+                FileName = new audHashString(parent, reader.ReadUInt32());
 
                 WaveSlotIndex = reader.ReadByte();
             }
@@ -58,11 +61,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendLine("Wave Slot ID: " + WaveSlotID);
+            builder.AppendLine("Wave Slot ID: " + WaveSlotId);
 
-            builder.AppendLine("Unk ID: " + UnkID);
-
-            builder.AppendLine("Unk Hash: 0x" + UnkSubHash.ToString("X"));
+            builder.AppendLine("File Name: 0x" + FileName.ToString());
 
             builder.AppendLine("Wave Slot Num: " + WaveSlotIndex);
 

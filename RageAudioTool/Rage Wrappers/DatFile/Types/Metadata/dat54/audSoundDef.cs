@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Text;
 using System.IO;
+using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audSoundDef
     {
-        public HashString GameName { get; set; }
+        public audHashString ScriptName { get; set; }
 
-        public HashString SoundName { get; set; }
+        public audHashString SoundName { get; set; }
 
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendLine("Game Name: " + GameName);
+            builder.AppendLine("Script Name: " + ScriptName);
 
-            builder.AppendLine("Internal Name: " + SoundName);
+            builder.AppendLine("Sound Name: " + SoundName);
 
             return builder.ToString();
         }

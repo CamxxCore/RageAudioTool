@@ -1,15 +1,17 @@
 ﻿using System.ComponentModel;
 using System.Xml.Serialization;
 using RageAudioTool.Interfaces;
+using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public abstract class audDataBase : ISerializable
+    public abstract class audDataBase : ISerializable, IRageAudioFiletype
     {
         protected RageDataFile parent;
 
+        [Description("Name of the sound")]
         [XmlElement(IsNullable = false)]
-        public HashString Name { get; set; }
+        public audHashString Name { get; set; }
 
         [XmlIgnore]
         [Browsable(false)]
@@ -21,10 +23,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         [XmlIgnore]
         [Browsable(false)]
-        public RageDataFile Parent
-        {
-            get { return parent; }
-        }   
+        public RageDataFile Parent => parent;
 
         public abstract byte[] Serialize();
 
@@ -33,30 +32,23 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         /// <summary>
         /// Initialize the class with the hashed name of the data.
         /// </summary>
+        /// <param name="file"></param>
         /// <param name="hashName">Data object hash.</param>
-        public audDataBase(RageDataFile parent, uint hashName)
+        public audDataBase(RageDataFile file, uint hashName)
         {
-            this.parent = parent;
-
-            string str;
-
-            if (parent.Nametable.TryGetValue(hashName, out str))
-            {
-                Name = str;
-            }
-
-            else
-                Name = hashName;
+            parent = file;
+            Name = new audHashString(file, hashName);
         }
 
         /// <summary>
         /// Initialize the class with the string name of the data.
         /// </summary>
+        /// <param name="file"></param>
         /// <param name="str">Data object name.</param>
         public audDataBase(RageDataFile file, string str)
         {
             parent = file;
-            Name = str;
+            Name = new audHashString(file, str);
         }
 
         public audDataBase()

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile

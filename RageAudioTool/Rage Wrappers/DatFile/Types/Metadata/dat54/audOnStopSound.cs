@@ -1,34 +1,52 @@
 ﻿using System;
+using System.IO;
 using System.Xml.Serialization;
+using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audOnStopSound : audSoundBase
     {
-        [XmlElement(DataType = "hexBinary")]
-        public byte[] Data { get; set; }
-
         public override byte[] Serialize()
         {
             var bytes = base.Serialize();
 
-            Buffer.BlockCopy(bytes, 0, Data, 0, bytes.Length);
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(stream))
+                {
+                    writer.Write(bytes);
 
-            return Data;
+                    writer.Write(AudioTracks[0].HashKey);
+
+                    writer.Write(AudioTracks[1].HashKey);
+
+                    writer.Write(AudioTracks[2].HashKey);
+                }
+
+                return stream.ToArray();
+            }
         }
 
         public override int Deserialize(byte[] data)
         {
-            int bytesRead = base.Deserialize(data);
+            var bytesRead = base.Deserialize(data);
 
-            Data = data;
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            {
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
 
-            return data.Length;
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+
+                return (int)reader.BaseStream.Position;
+            }
         }
 
         public override string ToString()
         {
-            return BitConverter.ToString(Data).Replace("-", "");
+            return "";//BitConverter.ToString(Data).Replace("-", "");
         }
 
         public audOnStopSound(RageDataFile parent, string str) : base(parent, str)

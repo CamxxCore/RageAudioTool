@@ -2,25 +2,23 @@
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
+using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audWrapperSound : audSoundBase
     {
-        [XmlElement(DataType = "hexBinary")]
-        public byte[] Data { get; set; }
-
-        public HashString SoundHash { get; set; } //0x0-0x4
+        //public audHashString SoundHash { get; set; } //0x0-0x4
 
         // maybe start delay?
         public int FrameStartTime { get; set; } //0x4-0x8
 
-        public HashString SoundHash1 { get; set; } //0x8-0xC
+       // public audHashString SoundHash1 { get; set; } //0x8-0xC
 
         // My guess is that this is related to the time at which a child sound should start playin (or the length of the sound).
         public short FrameTimeInterval { get; set; } //0xC-0xE
 
-        public HashString[] Variables { get; set; } //0xF
+        public audHashString[] Variables { get; set; } //0xF
 
         public override byte[] Serialize()
         {
@@ -32,11 +30,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                 {
                     writer.Write(bytes);
 
-                    writer.Write(SoundHash.HashKey);
+                    writer.Write(AudioTracks[0].HashKey);
 
                     writer.Write(FrameStartTime);
 
-                    writer.Write(SoundHash1.HashKey);
+                    writer.Write(AudioTracks[1].HashKey);
 
                     writer.Write(FrameTimeInterval);
 
@@ -54,27 +52,25 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public override int Deserialize(byte[] data)
         {
-            Data = data;
-
             int bytesRead = base.Deserialize(data);
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                SoundHash = reader.ReadUInt32();
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
 
                 FrameStartTime = reader.ReadInt32();
 
-                SoundHash1 = reader.ReadUInt32();
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
 
                 FrameTimeInterval = reader.ReadInt16();
 
                 int itemsCount = reader.ReadByte();
 
-                Variables = new HashString[itemsCount];
+                Variables = new audHashString[itemsCount];
 
                 for (int i = 0; i < itemsCount; i++)
                 {
-                    Variables[i] = reader.ReadUInt32();
+                    Variables[i] = new audHashString(parent, reader.ReadUInt32());
                 }
 
                 return (int)reader.BaseStream.Position;
@@ -85,11 +81,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendLine("Sound Hash: " + SoundHash.ToString());
+            builder.AppendLine("Sound Hash: " + AudioTracks[0].ToString());
 
             builder.AppendLine("Start Time: " + FrameStartTime.ToString());
 
-            builder.AppendLine("Sound Hash 1: " + SoundHash1.ToString());
+            builder.AppendLine("Sound Hash 1: " + AudioTracks[1].ToString());
 
             builder.AppendLine("Interval: " + FrameTimeInterval.ToString());
 

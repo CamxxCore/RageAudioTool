@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using RageAudioTool.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -18,7 +17,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public int Unk1 { get; set; }
 
-        private int type;
+        private int _type;
 
         public audShoreLine(RageDataFile parent, string str) : base(parent, str)
         { }
@@ -38,7 +37,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
             {
-                type = reader.ReadInt32();
+                _type = reader.ReadInt32();
 
                 reader.ReadInt32();
 

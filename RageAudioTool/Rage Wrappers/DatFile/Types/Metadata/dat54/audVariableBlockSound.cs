@@ -1,14 +1,11 @@
 ﻿using System.IO;
 using System.Text;
-using RageAudioTool.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audVariableBlockSound : audSoundBase
     {
-        public int Unk;
-
-        public audSoundVariable[] Variables { get; set; }
+        public AudVariable[] Variables { get; set; }
 
         public override byte[] Serialize()
         {
@@ -20,7 +17,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                 {
                     writer.Write(bytes);
 
-                    writer.Write(Unk);
+                    writer.Write(AudioTracks[0].HashKey);
 
                     writer.Write((byte)Variables.Length);
 
@@ -46,17 +43,23 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                Unk = reader.ReadInt32();
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
 
                 int numItems = reader.ReadByte();
 
-                Variables = new audSoundVariable[numItems];
+                Variables = new AudVariable[numItems];
 
                 for (int i = 0; i < numItems; i++)
                 {
-                    Variables[i] = new audSoundVariable(parent, string.Empty);
+                    Variables[i] = new AudVariable();
 
-                    Variables[i].Deserialize(reader.ReadBytes(0xD));    
+                    Variables[i].Name = new audHashString(parent, reader.ReadUInt32());
+
+                    Variables[i].Value = reader.ReadSingle();
+
+                    Variables[i].UnkFloat = reader.ReadSingle();
+
+                    Variables[i].Flags = reader.ReadByte();
                 }
             }
 
@@ -67,7 +70,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendLine(string.Format("\nUnk Hash: 0x{0:X}", Unk));
+            builder.AppendLine(string.Format("\nTrack Hash: 0x{0:X}", AudioTracks[0]));
 
             for (int i = 0; i < Variables.Length; i++)
             {
@@ -89,5 +92,16 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public audVariableBlockSound()
         { }
+    }
+
+    public class AudVariable
+    {
+        public audHashString Name { get; set; } = new audHashString();
+
+        public float Value { get; set; }
+
+        public float UnkFloat { get; set; }
+
+        public byte Flags { get; set; }
     }
 }
