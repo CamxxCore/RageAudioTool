@@ -1,43 +1,43 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using System.ComponentModel;
-using System.IO;
-using RageAudioTool.Types;
-using RageAudioTool.Interfaces;
-using RageAudioTool.Rage_Wrappers.DatFile;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+﻿using System.Runtime.InteropServices;
 
 namespace RageAudioTool
 {
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
+    struct audSound
+    {
+        [FieldOffset(0x62)]
+        private byte parentSoundIdx;
+    }
+
     /*
 dat151 parameter object hash e.x "SPEECH_PARAMS_FORCE_SHOUTED"
  * */
-    /*   [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
-       struct dat151
-       {
-           [FieldOffset(0x4)]
-           uint Flags;
-           [FieldOffset(0x10)]
-           byte unkByte;
-           [FieldOffset(0x11)]
-           byte unkByte1;
-           [FieldOffset(0x18)]
-           int unkInt;
-       }
+        /*   [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
+           struct dat151
+           {
+               [FieldOffset(0x4)]
+               uint Flags;
+               [FieldOffset(0x10)]
+               byte unkByte;
+               [FieldOffset(0x11)]
+               byte unkByte1;
+               [FieldOffset(0x18)]
+               int unkInt;
+           }
 
-       struct float
+           struct float
 
-       [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
-       struct audShorelinePool
-       {
-           [FieldOffset(0x40)]
-           short Count;
-           [FieldOffset(0x44)]
-           //[MarshalAs(UnmanagedType.LPArray, SizeConst = )]
+           [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
+           struct audShorelinePool
+           {
+               [FieldOffset(0x40)]
+               short Count;
+               [FieldOffset(0x44)]
+               //[MarshalAs(UnmanagedType.LPArray, SizeConst = )]
 
-       }*/
+           }*/
 
-    public enum Dat54AudMetadataTypes // ref 0x141199C1C
+        public enum Dat54AudMetadataTypes // ref 0x141199C1C
     {
         LoopingSound = 1,
         EnvelopeSound = 2,
@@ -71,6 +71,7 @@ dat151 parameter object hash e.x "SPEECH_PARAMS_FORCE_SHOUTED"
         AutomationSound = 30,
         ExternalStreamSound = 31,
         SoundSet = 32,
+        Unknown = 33,
         SoundList = 35
     }
 

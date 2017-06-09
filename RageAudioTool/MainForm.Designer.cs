@@ -36,6 +36,8 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.button3 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.button5 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -74,7 +76,7 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(456, 447);
+            this.dataGridView1.Size = new System.Drawing.Size(456, 448);
             this.dataGridView1.TabIndex = 3;
             this.dataGridView1.SelectionChanged += new System.EventHandler(this.dataGridView1_SelectedItemChanged);
             // 
@@ -92,10 +94,12 @@
             // textBox1
             // 
             this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.textBox1.Location = new System.Drawing.Point(14, 487);
+            this.textBox1.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.textBox1.Location = new System.Drawing.Point(14, 488);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(456, 20);
+            this.textBox1.Size = new System.Drawing.Size(313, 20);
             this.textBox1.TabIndex = 5;
+            this.textBox1.Text = "Search";
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // button3
@@ -120,11 +124,35 @@
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
+            // comboBox1
+            // 
+            this.comboBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox1.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(333, 487);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(71, 21);
+            this.comboBox1.TabIndex = 8;
+            // 
+            // button5
+            // 
+            this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.button5.Location = new System.Drawing.Point(410, 486);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(60, 23);
+            this.button5.TabIndex = 9;
+            this.button5.Text = "Search";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(839, 528);
+            this.Controls.Add(this.button5);
+            this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.textBox1);
@@ -134,7 +162,7 @@
             this.Controls.Add(this.button1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(855, 566);
+            this.MinimumSize = new System.Drawing.Size(853, 560);
             this.Name = "MainForm";
             this.Text = "RageAudioTool";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
@@ -152,6 +180,8 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.Button button5;
     }
 }
 

@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.ComponentModel;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -16,11 +14,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 
-                    writer.Write(AudioTracks[0].HashKey);
+                    writer.Write(AudioTracks[0]);
 
                     writer.Write(UnkArrayData.Length);
 
@@ -56,7 +54,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                     }
                 }
 
-                return (stream.ToArray());
+                return stream.ToArray();
             } 
         }
 
@@ -64,9 +62,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             int bytesRead = base.Deserialize(data);
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            using (BinaryReader reader = 
+                new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 var itemCount = reader.ReadInt32();
 
@@ -74,35 +74,23 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 for (int i = 0; i < itemCount; i++)
                 {
-                    UnkArrayData[i] = new audFluctuatorSoundData();
-
-                    UnkArrayData[i].UnkByte = reader.ReadByte();
-
-                    UnkArrayData[i].UnkByte1 = reader.ReadByte();
-
-                    UnkArrayData[i].ParameterHash = new audHashString(parent, reader.ReadUInt32());
-
-                    UnkArrayData[i].UnkFloat = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat1 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat2 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat3 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat4 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat5 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat6 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat7 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat8 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat9 = reader.ReadSingle();
-
-                    UnkArrayData[i].UnkFloat10 = reader.ReadSingle();
+                    UnkArrayData[i] = new audFluctuatorSoundData
+                    {
+                        UnkByte = reader.ReadByte(),
+                        UnkByte1 = reader.ReadByte(),
+                        ParameterHash = new audHashString(parent, reader.ReadUInt32()),
+                        UnkFloat = reader.ReadSingle(),
+                        UnkFloat1 = reader.ReadSingle(),
+                        UnkFloat2 = reader.ReadSingle(),
+                        UnkFloat3 = reader.ReadSingle(),
+                        UnkFloat4 = reader.ReadSingle(),
+                        UnkFloat5 = reader.ReadSingle(),
+                        UnkFloat6 = reader.ReadSingle(),
+                        UnkFloat7 = reader.ReadSingle(),
+                        UnkFloat8 = reader.ReadSingle(),
+                        UnkFloat9 = reader.ReadSingle(),
+                        UnkFloat10 = reader.ReadSingle()
+                    };
                 }
             }
 

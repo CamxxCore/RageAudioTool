@@ -1,15 +1,14 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.ComponentModel;
 using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audModularSynthSound : audSoundBase
     {      
-        public audHashString UnkHash { get; set; } //0x0-0x4
+        public audHashString OptAmpUnkHash { get; set; } //0x0-0x4
 
         public audHashString UnkHash1 { get; set; } //0x4-0x8
 
@@ -17,6 +16,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public int UnkInt2 { get; set; } //0xC-0x10
 
+        private int trackCount;
+
+        [XmlArray]
         public audModularSynthSoundData[] UnkArrayData { get; set; } //0x28-..
 
         public override byte[] Serialize()
@@ -25,9 +27,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
-                    writer.Write(UnkHash.HashKey);
+                    writer.Write(bytes);
+
+                    writer.Write(OptAmpUnkHash.HashKey);
 
                     writer.Write(UnkHash1.HashKey);
 
@@ -35,14 +39,12 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                     writer.Write(UnkInt2);
 
-                    writer.Write(AudioTracks.Count);
+                    writer.Write(trackCount);
 
                     for (int i = 0; i < AudioTracks.Count; i++)
                     {
-                        writer.Write(AudioTracks[i].HashKey);
+                        writer.Write(AudioTracks[i]);
                     }
-
-                    writer.Write(Enumerable.Repeat<byte>(0x0, (4 - AudioTracks.Count) << 2).ToArray());
 
                     writer.Write(UnkArrayData.Length);
 
@@ -65,22 +67,21 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                UnkHash = new audHashString(parent, reader.ReadUInt32());
+                OptAmpUnkHash = new audHashString(parent, reader.ReadUInt32()); //0x0-0x4
 
-                UnkHash1 = new audHashString(parent, reader.ReadUInt32());
+                UnkHash1 = new audHashString(parent, reader.ReadUInt32()); //0x4-0x8
 
-                UnkFloat = reader.ReadSingle();
+                UnkFloat = reader.ReadSingle(); //0x8-0xC
 
-                UnkInt2 = reader.ReadInt32();
+                UnkInt2 = reader.ReadInt32(); //0xC-0x10
 
-                var trackCount = reader.ReadInt32();
+                trackCount = reader.ReadInt32(); //0x10-0x14
 
-                for (int i = 0; i < trackCount; i++)
+                for (int i = 0; i < 4; i++)
                 {
-                    AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                    AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                        bytesRead + ((int)reader.BaseStream.Position - 4));
                 }
-
-                reader.ReadBytes((4 - trackCount) << 2); //0x14-0x24
 
                 var itemCount = reader.ReadInt32();
 
@@ -121,6 +122,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         public audHashString ParameterHash { get; set; }
 
         public float Value { get; set; }
+
+        public audModularSynthSoundData()
+        { }
 
         public audModularSynthSoundData(audHashString unkHash, audHashString parameterHash, float value)
         {

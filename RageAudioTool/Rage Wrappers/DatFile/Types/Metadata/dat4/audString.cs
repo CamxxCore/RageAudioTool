@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -12,7 +13,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 

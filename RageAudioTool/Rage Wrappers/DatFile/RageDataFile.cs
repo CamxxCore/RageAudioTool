@@ -1,12 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Collections.Generic;
 using RageAudioTool.IO;
-using RageAudioTool.Types;
-using System.ComponentModel;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+using System.Windows.Forms;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -35,15 +32,14 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public audDataBase[] DataItems { get; set; }
 
-        public audHash[] HashItems { get; set; }
+        public audHash[] WaveTracks { get; set; }
 
-        public audHash[] HashItems1 { get; set; }
+        public audHash[] WaveContainers { get; set; }
 
         public Dictionary<uint, string> Nametable =
             new Dictionary<uint, string>();
 
-        public RageDataFile()
-        { }
+        public int UnkDataSectionValue { get; set; }
 
         public virtual void Read(RageDataFileReadReference file)
         {
@@ -64,6 +60,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             DataSection = file.ReadBytes(toRead);
 
+            UnkDataSectionValue = BitConverter.ToInt32(DataSection, 0); // what the hell is this? timestamp maybe?
+
             StringSectionSize = file.ReadInt32() - 4; // size of entire string table section indexes + strings
 
             var tableSize = file.ReadInt32(); // strings in string table
@@ -74,17 +72,38 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             DataItems = ReadDataItems(file, itemCount);
 
-            itemCount = file.ReadInt32();
+          //  itemCount = file.ReadInt32();
 
-            HashItems = ReadHashItems(file, itemCount);
+          //  WaveTracks = ReadWaveTracks(file, itemCount);
+        }
 
-            itemCount = file.ReadInt32();
+        public virtual audHash[] ReadWaveTracks(RageDataFileReadReference file, int itemCount)
+        {
+            var items = new audHash[itemCount];
 
-            HashItems1 = ReadHashItems1(file, itemCount);           
+            byte[] buffer = new byte[0x4];
+
+            for (int i = 0; i < itemCount; i++)
+            {
+                var offset = file.ReadInt32();
+
+                offset -= 8;
+
+                Buffer.BlockCopy(DataSection, offset, buffer, 0, 4);
+
+                items[i] = new audHash(this);
+                items[i].Deserialize(buffer);
+                items[i].FileOffset = offset;
+                items[i].Length = 4;
+            }
+
+            return items;
         }
 
         public virtual void Write(RageDataFileWriteReference file)
         {
+            StringSectionSize = StringTable.Sum(str => str.Length + 5);       
+
             CreateDataSection();
 
             file.Write((int)Type);
@@ -103,138 +122,110 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             WriteDataOffsets(file);
 
-            file.Write(HashItems.Length);
+            WriteWaveTracks(file);
 
-            WriteHashOffsets(file);
-
-            file.Write(HashItems1.Length);
-
-            WriteHashOffsets1(file);
+            WriteWaveContainers(file);
         }
 
         private void ReadNametableItems(string nametablePath)
         {
-            using (var reader = new BinaryReader(File.Open(nametablePath, FileMode.Open)))
+            using (var reader = new IOBinaryReader(File.Open(nametablePath, FileMode.Open)))
             {
                 while (true)
                 {
                     if (reader.BaseStream.Position >= reader.BaseStream.Length)
                         break;
 
-                    var text = string.Empty;
-
-                    char result;
-                    while ((result = reader.ReadChar()) != '\0')
-                    {
-                        text += result;
-                    }
+                    string text = reader.ReadAnsi();
 
                     if (!Nametable.ContainsValue(text))
                     {
                         Nametable.Add(text.HashKey(), text);
                     }
 
-                    else System.Windows.Forms.MessageBox.Show("Ignoring duplicate entry \"" + text + "\" in \"" + nametablePath);      
+                    else MessageBox.Show("Ignoring duplicate entry \"" + text + "\" in \"" + nametablePath);      
                 }
             }
         }
 
         public abstract audDataBase[] ReadDataItems(RageDataFileReadReference file, int numItems);
 
-        public virtual audHash[] ReadHashItems(RageDataFileReadReference file, int itemCount)
-        {
-            var items = new audHash[itemCount];
-
-            byte[] buffer = new byte[0x4];
-
-            for (int i = 0; i < itemCount; i++)
-            {
-                var offset = file.ReadInt32();
-
-                offset -= 8;
-
-                Buffer.BlockCopy(DataSection, offset, buffer, 0, 4);
-
-                items[i] = new audHash(this);
-
-                items[i].Deserialize(buffer);
-
-                items[i].FileOffset = offset;
-
-                items[i].Length = 4;
-            }
-
-            return items;
-        }
-
-        public virtual audHash[] ReadHashItems1(RageDataFileReadReference file, int itemCount)
-        {
-            var items = new audHash[itemCount];
-
-            byte[] buffer = new byte[0x4];
-
-            for (int i = 0; i < itemCount; i++)
-            {
-                var offset = file.ReadInt32();
-
-                offset -= 8;
-
-                Buffer.BlockCopy(DataSection, offset, buffer, 0, 4);
-
-                items[i] = new audHash(this);
-
-                items[i].Deserialize(buffer);
-
-                items[i].FileOffset = offset;
-
-                items[i].Length = 4;
-            }
-
-            return items;
-        }
-
         private void CreateDataSection()
         {
-            foreach (var item in DataItems)
-            {
-                var bytes = item.Serialize();
-
-                Buffer.BlockCopy(bytes, 0, DataSection, item.FileOffset, bytes.Length);
-            }           
-            
-         /*   var dataEntries = DataItems.Concat(HashItems).Concat(HashItems1);
-
             using (MemoryStream ms = new MemoryStream())
             {
                 using (BinaryWriter writer = new BinaryWriter(ms))
                 {
-                    foreach (audDataBase item in dataEntries)
-                    {
-                        item.FileOffset = (int)writer.BaseStream.Position;
+                    writer.Write(UnkDataSectionValue);
 
-                        writer.Write(item.Serialize());
+                    for (int i = 0; i < DataItems.Length; i++)
+                    {
+                        var data = DataItems[i].Serialize();
+
+                        DataItems[i].FileOffset =
+                            (int)writer.BaseStream.Position;
+
+                        writer.Write(data);
                     }
                 }
 
                 DataSection = ms.ToArray();
-            }*/
+            }         
         }
 
         protected abstract void WriteDataOffsets(RageDataFileWriteReference file);
 
-        protected void WriteHashOffsets(RageDataFileWriteReference file)
+        protected void WriteWaveContainers(RageDataFileWriteReference file)
         {
-            foreach (audDataBase item in HashItems)
+            if (this is RageAudioMetadata5)
             {
-                file.Write(item.FileOffset + 8);
+                var items = DataItems
+                    .OfType<audSoundBase>()
+                    .SelectMany(x => x.AudioContainers.BaseList.Select(y => x.FileOffset + y.Offset)).ToArray();
+
+                file.Write(items.Length);
+     
+                foreach (var offset in items)
+                {
+                    file.Write(offset + 8);
+                }
+            }
+
+            else
+            {
+                file.Write(WaveContainers.Length);
+
+                foreach (var item in WaveContainers)
+                {
+                    file.Write(item.FileOffset + 8);
+                }
             }
         }
 
-        protected void WriteHashOffsets1(RageDataFileWriteReference file)
+        protected void WriteWaveTracks(RageDataFileWriteReference file)
         {
-            foreach (audDataBase item in HashItems1)
+            if (this is RageAudioMetadata5)
             {
-                file.Write(item.FileOffset + 8);
+                var items = DataItems
+                    .OfType<audSoundBase>()
+                    .SelectMany(x => x.AudioTracks.BaseList.Select(y => x.FileOffset + y.Offset)).ToArray();
+
+                file.Write(items.Length);
+
+                foreach (var offset in items)
+                {
+                    file.Write(offset + 8);
+                }
+            }
+
+            else
+            {
+                file.Write(WaveTracks.Length);
+
+                foreach (var item in WaveTracks)
+                {
+                    file.Write(item.FileOffset + 8);
+                }
             }
         }
 
@@ -258,6 +249,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 result[i] = file.ReadAnsi();
 
+                if (!Nametable.ContainsValue(result[i]))
+                {
+                    Nametable.Add(result[i].HashKey(), result[i]);
+                }
+
                 file.BaseStream.Seek(currentPos, SeekOrigin.Begin);
             }
 
@@ -276,7 +272,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                     {
                         file.Write((int)writer.BaseStream.Position); // write string offset
 
-                        writer.WriteAnsi(StringTable[i]);                  
+                        writer.WriteAnsi(StringTable[i]);
                     }
                 }
 
@@ -296,14 +292,14 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                 Array.Clear(DataItems, 0, DataItems.Length);
             }
 
-            if (HashItems != null)
+            if (WaveTracks != null)
             {
-                Array.Clear(HashItems, 0, HashItems.Length);
+                Array.Clear(WaveTracks, 0, WaveTracks.Length);
             }
 
-            if (HashItems1 != null)
+            if (WaveContainers != null)
             {
-                Array.Clear(HashItems1, 0, HashItems1.Length);
+                Array.Clear(WaveContainers, 0, WaveContainers.Length);
             }
 
             StringSectionSize = 0;

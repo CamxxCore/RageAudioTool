@@ -1,7 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+﻿using System.IO;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -15,15 +13,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public ushort UnkShort3 { get; set; } // 0x6-0x8
 
-        audHashString ParameterHash { get; set; } //0x8-0xC
+        public audHashString ParameterHash { get; set; } //0x8-0xC
 
-        audHashString ParameterHash1 { get; set; } //0xC-0x10
-
-    //    public audHashString Sound1 { get; set; } //0x10-0x14
-
-     //   public audHashString Sound2 { get; set; } //0x14-0x18
-
-    //    public audHashString Sound3 { get; set; } //0x18-0x1C
+        public audHashString ParameterHash1 { get; set; } //0xC-0x10
 
         public override byte[] Serialize()
         {
@@ -31,8 +23,10 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
+                    writer.Write(bytes);
+
                     writer.Write(UnkShort);
 
                     writer.Write(UnkShort1);
@@ -45,11 +39,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                     writer.Write(ParameterHash1.HashKey);
 
-                    writer.Write(AudioTracks[0].HashKey);
+                    writer.Write(AudioTracks[0]);
 
-                    writer.Write(AudioTracks[1].HashKey);
+                    writer.Write(AudioTracks[1]);
 
-                    writer.Write(AudioTracks[2].HashKey);
+                    writer.Write(AudioTracks[2]);
                 }
 
                 return stream.ToArray();
@@ -70,15 +64,18 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 UnkShort3 = reader.ReadUInt16();
 
-                ParameterHash = new audHashString(parent, reader.ReadUInt16());
+                ParameterHash = new audHashString(parent, reader.ReadUInt32());
 
-                ParameterHash1 = new audHashString(parent, reader.ReadUInt16());
+                ParameterHash1 = new audHashString(parent, reader.ReadUInt32());
 
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 return (int)reader.BaseStream.Position;
             }

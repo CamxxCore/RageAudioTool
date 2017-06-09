@@ -43,7 +43,9 @@ namespace RageAudioTool.Types
                     input = input.Substring(2);
                 }
 
-                return uint.Parse(input, System.Globalization.NumberStyles.HexNumber, culture);
+                uint result;
+                uint.TryParse(input, System.Globalization.NumberStyles.HexNumber, culture, out result);
+                return result;
             }
             return base.ConvertFrom(context, culture, value);
         }

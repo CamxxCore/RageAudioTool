@@ -1,34 +1,46 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.IO;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audVariablePrintValueSound : audSoundBase
     {
-        [XmlElement(DataType = "hexBinary")]
-        public byte[] Data { get; set; }
+        public audHashString ParameterHash { get; set; } //0x0-0x4
+
+        public string VariableString { get; set; }
 
         public override byte[] Serialize()
         {
             var bytes = base.Serialize();
 
-            Buffer.BlockCopy(bytes, 0, Data, 0, bytes.Length);
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
+                {
+                    writer.Write(bytes);
+                    writer.Write(ParameterHash.HashKey);
+                    writer.Write(VariableString);
+                }
 
-            return Data;
+                return stream.ToArray();
+            }
         }
 
         public override int Deserialize(byte[] data)
         {
-            int bytesRead = base.Deserialize(data);
+            var bytesRead = base.Deserialize(data);
 
-            Data = data;
-
-            return data.Length;
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            {
+                ParameterHash = new audHashString(parent, reader.ReadUInt32());
+                VariableString = reader.ReadString();
+                return (int)reader.BaseStream.Position;
+            }
         }
 
         public override string ToString()
         {
-            return BitConverter.ToString(Data).Replace("-", "");
+            return "";//BitConverter.ToString(Data).Replace("-", "");
         }
 
         public audVariablePrintValueSound(RageDataFile parent, string str) : base(parent, str)

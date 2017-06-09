@@ -1,15 +1,14 @@
-﻿using System;
-using System.Text;
-using System.IO;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+﻿using System.Text;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
-    public class audSoundDef
+    public class audSoundSetItem
     {
-        public audHashString ScriptName { get; set; }
+        public audHashString ScriptName { get; set; } = 
+            new audHashString();
 
-        public audHashString SoundName { get; set; }
+        public audHashString SoundName { get; set; } = 
+            new audHashString();
 
         public override string ToString()
         {
@@ -23,4 +22,3 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         }
     }
 }
-

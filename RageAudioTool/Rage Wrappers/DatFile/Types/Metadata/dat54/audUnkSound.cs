@@ -1,5 +1,4 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -17,10 +16,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public override int Deserialize(byte[] data)
         {
-            int bytesRead = base.Deserialize(data);
-
             Data = data;
-
             return data.Length;
         }
 

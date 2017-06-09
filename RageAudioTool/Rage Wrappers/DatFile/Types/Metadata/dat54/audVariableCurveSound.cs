@@ -1,34 +1,62 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.IO;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audVariableCurveSound : audSoundBase
     {
-        [XmlElement(DataType = "hexBinary")]
-        public byte[] Data { get; set; }
+        public audHashString ParameterHash { get; set; } //0x4-0x8
+
+        public audHashString ParameterHash1 { get; set; } //0x8-0xC
+
+        public audHashString UnkCurvesHash { get; set; } //0xC-0x10
 
         public override byte[] Serialize()
         {
             var bytes = base.Serialize();
 
-            Buffer.BlockCopy(bytes, 0, Data, 0, bytes.Length);
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
+                {
+                    writer.Write(bytes);
 
-            return Data;
+                    writer.Write(AudioTracks[0]);
+
+                    writer.Write(ParameterHash.HashKey);
+
+                    writer.Write(ParameterHash1.HashKey);
+
+                    writer.Write(UnkCurvesHash.HashKey);
+                }
+
+                return stream.ToArray();
+            }
         }
+
 
         public override int Deserialize(byte[] data)
         {
-            int bytesRead = base.Deserialize(data);
+            var bytesRead = base.Deserialize(data);
 
-            Data = data;
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            {
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
-            return data.Length;
+                ParameterHash = new audHashString(parent, reader.ReadUInt32());
+
+                ParameterHash1 = new audHashString(parent, reader.ReadUInt32());
+
+                UnkCurvesHash = new audHashString(parent, reader.ReadUInt32());
+
+                return (int)reader.BaseStream.Position;
+            }
         }
 
         public override string ToString()
         {
-            return BitConverter.ToString(Data).Replace("-", "");
+            return "";//BitConverter.ToString(Data).Replace("-", "");
         }
 
         public audVariableCurveSound(RageDataFile parent, string str) : base(parent, str)

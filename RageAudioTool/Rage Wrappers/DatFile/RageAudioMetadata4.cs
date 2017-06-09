@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -59,11 +58,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                         break;
                 }
 
-                items[i].Deserialize(data);
-
                 items[i].FileOffset = offset;
 
                 items[i].Length = length;
+
+                items[i].Deserialize(data);
             }
 
             return items;

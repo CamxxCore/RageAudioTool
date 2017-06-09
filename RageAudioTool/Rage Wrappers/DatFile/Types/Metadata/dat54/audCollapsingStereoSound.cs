@@ -1,7 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+﻿using System.IO;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -9,7 +7,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
     {
         public float UnkFloat { get; set; }
 
-        public float UnkFloat1 { get; set; } //0x10-0x14
+        public float UnkFloat1 { get; set; }
+
+        public audHashString ParameterHash { get; set; } //0x10-0x14
 
         public audHashString ParameterHash1 { get; set; } //0x14-0x18
 
@@ -19,9 +19,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public audHashString ParameterHash4 { get; set; } //0x20-0x24
 
-        public int UnkInt { get; set; } //0x24-0x28
+        public audHashString ParameterHash5 { get; set; } //0x28-0x2C
 
-        public float UnkFloat2 { get; set; } //0x28-0x2C
+        public int UnkInt { get; set; } //0x24-0x28
 
         public byte UnkByte { get; set; } //0x2c-0x2D
 
@@ -31,15 +31,19 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
-                    writer.Write(AudioTracks[0].HashKey); //0x0-0x4
+                    writer.Write(bytes);
 
-                    writer.Write(AudioTracks[1].HashKey); //0x4-0x8
+                    writer.Write(AudioTracks[0]); //0x0-0x4
+
+                    writer.Write(AudioTracks[1]); //0x4-0x8
 
                     writer.Write(UnkFloat);
 
                     writer.Write(UnkFloat1);
+
+                    writer.Write(ParameterHash.HashKey);
 
                     writer.Write(ParameterHash1.HashKey);
 
@@ -51,7 +55,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                     writer.Write(UnkInt);
 
-                    writer.Write(UnkFloat2);
+                    writer.Write(ParameterHash5.HashKey);
 
                     writer.Write(UnkByte);
                 }
@@ -66,27 +70,29 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), bytesRead + ((int)reader.BaseStream.Position - 4));
 
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), bytesRead + ((int)reader.BaseStream.Position - 4));
 
-                UnkFloat = reader.ReadSingle();
+                UnkFloat = reader.ReadSingle(); //0x8
 
-                UnkFloat1 = reader.ReadSingle();
+                UnkFloat1 = reader.ReadSingle(); //0xC
 
-                ParameterHash1 = new audHashString(parent, reader.ReadUInt32());
+                ParameterHash = new audHashString(parent, reader.ReadUInt32()); //0x10
 
-                ParameterHash2 = new audHashString(parent, reader.ReadUInt32());
+                ParameterHash1 = new audHashString(parent, reader.ReadUInt32()); //0x14
 
-                ParameterHash3 = new audHashString(parent, reader.ReadUInt32());
+                ParameterHash2 = new audHashString(parent, reader.ReadUInt32()); //0x18
 
-                ParameterHash4 = new audHashString(parent, reader.ReadUInt32());
+                ParameterHash3 = new audHashString(parent, reader.ReadUInt32()); //0x1C
 
-                UnkInt = reader.ReadInt32();
+                ParameterHash4 = new audHashString(parent, reader.ReadUInt32()); //0x20
 
-                UnkFloat2 = reader.ReadSingle();
+                UnkInt = reader.ReadInt32(); //0x24-0x28
 
-                UnkByte = reader.ReadByte();
+                ParameterHash5 = new audHashString(parent, reader.ReadUInt32()); //0x28-0x2C
+
+                UnkByte = reader.ReadByte(); //0x2C-0x2D
 
                 return (int)reader.BaseStream.Position;
             }

@@ -8,24 +8,23 @@ namespace RageAudioTool.XML
 {
     public class ResourceXmlWriter5
     {
-        private string _filename;
+        private readonly string _filename;
 
         public ResourceXmlWriter5(string filename)
         {
-            this._filename = filename;
+            _filename = filename;
         }
 
         public void WriteData(RageAudioMetadata5 data)
         {
-            using (var writer = XmlWriter.Create(_filename, new XmlWriterSettings() { Indent = true }))
+            using (var writer = XmlWriter.Create(_filename, 
+                new XmlWriterSettings() { Indent = true, WriteEndDocumentOnClose = true }))
             {
                 writer.WriteStartDocument();
 
                 writer.WriteStartElement(data.Type.ToString());
 
-                writer.WriteStartElement("stringTable");
-
-                writer.WriteAttributeString("sectionSize", data.StringSectionSize.ToString());
+                writer.WriteStartElement("waveContainers");
 
                 foreach (var item in data.StringTable)
                 {
@@ -36,8 +35,6 @@ namespace RageAudioTool.XML
 
                 writer.WriteStartElement("dataEntries");
 
-                writer.WriteAttributeString("sectionSize", data.DataItems.Length.ToString());
-
                 foreach (var item in data.DataItems)
                 {
                     Serialize(writer, item);
@@ -46,28 +43,30 @@ namespace RageAudioTool.XML
                 }
 
                 writer.WriteEndElement();
+/*
+                writer.WriteStartElement("waveTracks");
 
-                writer.WriteStartElement("hashItems");
+                foreach (var item in data.WaveTracks)
+                {
+                    writer.WriteElementString("item", item.Value.ToString());
+                }
 
-                foreach (var item in data.HashItems)
+                writer.WriteEndElement();*/
+
+          /*      writer.WriteStartElement("waveContainers");
+
+                foreach (var item in data.WaveContainers)
                 {
                     writer.WriteElementString("item", item.Value.ToString());
                 }
 
                 writer.WriteEndElement();
-
-                writer.WriteStartElement("hashItems1");
-
-                foreach (var item in data.HashItems1)
-                {
-                    writer.WriteElementString("item", item.Value.ToString());
-                }
+                
+    */
 
                 writer.WriteEndElement();
 
-                writer.WriteEndElement();
-
-                writer.WriteEndDocument();
+                writer.Close();
             }
         }
 

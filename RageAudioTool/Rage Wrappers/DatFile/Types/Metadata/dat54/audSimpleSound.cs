@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using System.IO;
 using System.ComponentModel;
+using System.Xml.Serialization;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -9,30 +11,28 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         [Description("Name of the .wav file")]
         public audHashString FileName { get; set; }
 
-        [Description("Relative path to parent wave container (i.e. STREAMED_VEHICLES_GRANULAR/dune_space)")]
+        [XmlIgnore]
+        [Description("Relative path to parent wave container (i.e. \"RESIDENT/animals\")")]
         public audHashString ContainerName { get; set; }
 
-        [Description("ID of wave (.awc) container")]
-        public ushort WaveSlotId { get; set; }
-
         [Description("Internal index of wave (.awc) container")]
-        public byte WaveSlotIndex { get; set; }
+        public byte WaveSlotNum { get; set; }
 
         public override byte[] Serialize()
         {
             var bytes = base.Serialize();
 
             using (MemoryStream stream = new MemoryStream())
-            {               
-                using (BinaryWriter writer = new BinaryWriter(stream))
+            {
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 
-                    writer.Write(ContainerName.HashKey);
-
+                    writer.Write(AudioContainers[0]);
+  
                     writer.Write(FileName.HashKey);
 
-                    writer.Write(WaveSlotIndex);
+                    writer.Write(WaveSlotNum);
                 }
 
                 return stream.ToArray();
@@ -43,30 +43,26 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             var bytesRead = base.Deserialize(data);
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            using (var reader = new IOBinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
                 ContainerName = new audHashString(parent, reader.ReadUInt32());
 
-                WaveSlotId = (ushort)(ContainerName.HashKey & 0xFFFF);
+                AudioContainers.Add(new audHashDesc(ContainerName, 
+                    bytesRead + ((int)reader.BaseStream.Position - 4)));
 
                 FileName = new audHashString(parent, reader.ReadUInt32());
 
-                WaveSlotIndex = reader.ReadByte();
+                WaveSlotNum = reader.ReadByte();
             }
-
             return data.Length;
         }
 
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
-
-            builder.AppendLine("Wave Slot ID: " + WaveSlotId);
-
-            builder.AppendLine("File Name: 0x" + FileName.ToString());
-
-            builder.AppendLine("Wave Slot Num: " + WaveSlotIndex);
-
+            builder.AppendLine("File Name: " + FileName);
+            builder.AppendLine("Container Name: " + ContainerName);
+            builder.AppendLine("Wave Slot Num: " + WaveSlotNum);
             return builder.ToString();
         }
 

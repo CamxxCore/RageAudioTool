@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -14,15 +12,15 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 
-                    writer.Write(((byte)AudioTracks.Count));
+                    writer.Write((byte)AudioTracks.Count);
 
                     for (int i = 0; i < AudioTracks.Count; i++)
                     {
-                        writer.Write(AudioTracks[i].HashKey);
+                        writer.Write(AudioTracks[i]);
                     }
                 }
 
@@ -40,7 +38,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 for (int i = 0; i < numItems; i++)
                 {
-                    AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                    AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                        bytesRead + ((int)reader.BaseStream.Position - 4));
                 }
             }
 

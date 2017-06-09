@@ -33,6 +33,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>RAGE_Technology_Group_Logo.svg.ico</ApplicationIcon>
@@ -62,8 +63,8 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Interfaces\IXMLSerializable.cs" />
-    <Compile Include="IO\IOFileReader.cs" />
-    <Compile Include="IO\IOFileWriter.cs" />
+    <Compile Include="IO\IOBinaryReader.cs" />
+    <Compile Include="IO\IOBinaryWriter.cs" />
     <Compile Include="NametableEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,12 +79,16 @@
     <Compile Include="Rage Wrappers\DatFile\RageDataFile.IO.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\audDataBase.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\audSoundHeader.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\audHashDesc.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\audHashCollection.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShoreLine.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShorelineList.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audVariableList.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\audHash.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat4\audVoiceData.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSoundDef.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audSoundList.cs" />
+    <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audUnknown.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audUnkSound.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\speech\audSpeechData.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat54\audAutomationSound.cs" />
@@ -134,7 +139,9 @@
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShorelineLake.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audShorelinePool.cs" />
     <Compile Include="Rage Wrappers\DatFile\Types\Metadata\dat151\audUnkMetadata.cs" />
-    <Compile Include="Types\ElegantExpandableObjectConverter.cs" />
+    <Compile Include="Types\AudTrackPropertyDescriptor.cs" />
+    <Compile Include="Types\NamedObjectConverter.cs" />
+    <Compile Include="Types\PropertyListObjectConverter.cs" />
     <Compile Include="Types\UInt32HexTypeConverter.cs" />
     <Compile Include="Types\ValueTypeConverter.cs" />
     <Compile Include="XML\ResourceXMLReader5.cs" />

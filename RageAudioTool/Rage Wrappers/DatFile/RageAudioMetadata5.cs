@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
@@ -11,13 +12,14 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
     /// </summary>
     public class RageAudioMetadata5 : RageDataFile
     {
-        public override void Read(RageDataFileReadReference file)
+        public RageAudioMetadata5()
         {
-            string filePath = "categories.txt";
-
-            if (File.Exists(filePath))
+            foreach (var file in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + 
+                "strings", 
+                "*.txt", 
+                SearchOption.AllDirectories))
             {
-                using (StreamReader reader = File.OpenText(filePath))
+                using (var reader = File.OpenText(file))
                 {
                     string line;
 
@@ -30,36 +32,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                                 Nametable.Add(line.HashKey(), line);
                             }
 
-                            else MessageBox.Show("Ignoring duplicate entry \"" + line + "\" in \"" + filePath);
+                            else MessageBox.Show("Ignoring duplicate entry \"" + line + "\" in \"" + file);
                         }
                     }
                 }
             }
-
-            filePath = "variables.txt";
-
-            if (File.Exists(filePath))
-            {
-                using (StreamReader reader = File.OpenText(filePath))
-                {
-                    string line;
-
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        if (!string.IsNullOrEmpty(line))
-                        {
-                            if (!Nametable.ContainsValue(line))
-                            {
-                                Nametable.Add(line.HashKey(), line);
-                            }
-
-                            else MessageBox.Show("Ignoring duplicate entry \"" + line + "\" in \"" + filePath);
-                        }
-                    }
-                }
-            }
-
-            base.Read(file);
         }
 
         public override audDataBase[] ReadDataItems(RageDataFileReadReference file, int itemCount)
@@ -80,13 +57,13 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 items[i] = CreateDerivedDataType(data[0], hashKey);
 
-                items[i].Deserialize(data);
-
                 items[i].FileOffset = offset;
 
                 items[i].Length = length;
-            }
 
+                items[i].Deserialize(data);
+
+            }
             return items;
         }
 
@@ -190,14 +167,16 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                         return new audSoundSet(this, hashKey);
                     case Dat54AudMetadataTypes.SoundList:
                         return new audSoundList(this, hashKey);
+                    case Dat54AudMetadataTypes.Unknown:
+                        return new audUnknown(this, hashKey);
                     default:
-                        return new audByteArray(this, hashKey);
+                        return new audUnkSound(this, hashKey);
                 }
             }
 
             if (Type == RageAudioMetadataFileType.Dat4)
             {
-                return new audByteArray(this, hashKey);
+                return new audVoiceData(this, hashKey);
             }
 
             return null;
@@ -227,32 +206,12 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             builder.AppendLine();
 
-            foreach (audDataBase dataEntry in DataItems)
+            foreach (audDataBase dataEntry in DataItems.OrderBy(x => x.FileOffset))
             {
-                builder.AppendFormat("\n[{0}] {1} @ 0x{2:X} [Length:{3}]\n{4}\n", dataEntry.Name, dataEntry.GetType().Name, dataEntry.FileOffset, dataEntry.Serialize().Length, dataEntry.ToString());
+                builder.AppendFormat("\n[{0}] {1} @ 0x{2:X}-0x{3:X}\n{4}\n", dataEntry.Name, dataEntry.GetType().Name, dataEntry.FileOffset, dataEntry.FileOffset + dataEntry.Serialize().Length, dataEntry);
             }
 
             builder.AppendLine();
-
-            builder.AppendLine("Hash Section Length: " + HashItems.Length);
-
-            builder.AppendLine();
-
-            foreach (var item in HashItems)
-            {
-                builder.AppendFormat("0x{0:X} (Offset: 0x{1:X})\n", item.Value, item.FileOffset);
-            }
-
-            builder.AppendLine();
-
-            builder.AppendLine("Hash Section 1 Length: " + HashItems1.Length);
-
-            builder.AppendLine();
-
-            foreach (var item in HashItems1)
-            {
-                builder.AppendFormat("0x{0:X} (Offset: 0x{1:X})\n", item.Value, item.FileOffset);
-            }
 
             return builder.ToString();
         }

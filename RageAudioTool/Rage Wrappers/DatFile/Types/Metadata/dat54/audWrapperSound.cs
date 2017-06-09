@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -20,29 +18,36 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public audHashString[] Variables { get; set; } //0xF
 
+        public  byte[] UnkByteData { get; set; } // ...
+
         public override byte[] Serialize()
         {
             var bytes = base.Serialize();
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 
-                    writer.Write(AudioTracks[0].HashKey);
+                    writer.Write(AudioTracks[0]); //0x0-0x4
 
-                    writer.Write(FrameStartTime);
+                    writer.Write(FrameStartTime); //0x4-0x8
 
-                    writer.Write(AudioTracks[1].HashKey);
+                    writer.Write(AudioTracks[1]); //0x8-0xC
 
-                    writer.Write(FrameTimeInterval);
+                    writer.Write(FrameTimeInterval); //0xC-0xE
 
-                    writer.Write((byte)Variables.Length);
+                    writer.Write((byte)Variables.Length); //0xE-0xF
 
                     for (int i = 0; i < Variables.Length; i++)
                     {
                         writer.Write(Variables[i].HashKey);
+                    }
+
+                    for (int i = 0; i < UnkByteData.Length; i++)
+                    {
+                        writer.Write(UnkByteData[i]);
                     }
                 }
 
@@ -56,11 +61,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 FrameStartTime = reader.ReadInt32();
 
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 FrameTimeInterval = reader.ReadInt16();
 
@@ -73,6 +78,13 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                     Variables[i] = new audHashString(parent, reader.ReadUInt32());
                 }
 
+                UnkByteData = new byte[itemsCount];
+
+                for (int i = 0; i < itemsCount; i++)
+                {
+                    UnkByteData[i] = reader.ReadByte();
+                }
+
                 return (int)reader.BaseStream.Position;
             }
         }
@@ -81,17 +93,17 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendLine("Sound Hash: " + AudioTracks[0].ToString());
+            builder.AppendLine("Sound Hash: " + AudioTracks[0]);
 
-            builder.AppendLine("Start Time: " + FrameStartTime.ToString());
+            builder.AppendLine("Start Time: " + FrameStartTime);
 
-            builder.AppendLine("Sound Hash 1: " + AudioTracks[1].ToString());
+            builder.AppendLine("Sound Hash 1: " + AudioTracks[1]);
 
-            builder.AppendLine("Interval: " + FrameTimeInterval.ToString());
+            builder.AppendLine("Interval: " + FrameTimeInterval);
 
             for (int i = 0; i < Variables.Length; i++)
             {
-                builder.AppendLine("Hash " + (i + 1) + ": " + Variables[i].ToString());
+                builder.AppendLine("Hash " + (i + 1) + ": " + Variables[i]);
             }
 
             return builder.ToString();

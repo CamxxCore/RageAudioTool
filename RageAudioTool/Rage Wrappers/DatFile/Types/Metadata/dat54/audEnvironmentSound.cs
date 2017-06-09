@@ -1,5 +1,4 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -10,16 +9,22 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public override byte[] Serialize()
         {
-            var bytes = base.Serialize();
+            //   var bytes = base.Serialize();
 
-            Buffer.BlockCopy(bytes, 0, Data, 0, bytes.Length);
+            /* using (MemoryStream stream = new MemoryStream())
+             {
+                 using (IOBinaryWriter writer = new IOBinaryWriter(stream))
+                 {
 
+                 }
+
+             }*/
             return Data;
         }
 
         public override int Deserialize(byte[] data)
         {
-            int bytesRead = base.Deserialize(data);
+            //       int bytesRead = base.Deserialize(data);
 
             Data = data;
 
@@ -28,7 +33,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public override string ToString()
         {
-            return BitConverter.ToString(Data).Replace("-", "");
+            return ""; //BitConverter.ToString(Data).Replace("-", "");
         }
 
         public audEnvironmentSound(RageDataFile parent, string str) : base(parent, str)

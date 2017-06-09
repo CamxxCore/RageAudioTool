@@ -13,13 +13,13 @@ namespace RageAudioTool.Types
         public override object CreateInstance(System.ComponentModel.ITypeDescriptorContext context, System.Collections.IDictionary propertyValues)
         {
             if (propertyValues == null)
-                throw new ArgumentNullException("propertyValues");
+                throw new ArgumentNullException(nameof(propertyValues));
 
             object boxed = Activator.CreateInstance(context.PropertyDescriptor.PropertyType);
             foreach (System.Collections.DictionaryEntry entry in propertyValues)
             {
                 PropertyInfo pi = context.PropertyDescriptor.PropertyType.GetProperty(entry.Key.ToString());
-                if ((pi != null) && (pi.CanWrite))
+                if (pi != null && pi.CanWrite)
                 {
                     pi.SetValue(boxed, Convert.ChangeType(entry.Value, pi.PropertyType), null);
                 }

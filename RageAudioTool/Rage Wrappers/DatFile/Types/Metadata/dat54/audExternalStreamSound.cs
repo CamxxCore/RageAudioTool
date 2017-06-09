@@ -1,34 +1,56 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.IO;
+using System.Linq;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audExternalStreamSound : audSoundBase
     {
-        [XmlElement(DataType = "hexBinary")]
-        public byte[] Data { get; set; }
-
         public override byte[] Serialize()
         {
             var bytes = base.Serialize();
 
-            Buffer.BlockCopy(bytes, 0, Data, 0, bytes.Length);
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
+                {
+                    writer.Write(bytes);
 
-            return Data;
+                    writer.Write((byte)AudioTracks.Count);
+
+                    for (int i = 0; i < AudioTracks.Count; i++)
+                    {
+                        writer.Write(AudioTracks[i]);
+                    }
+
+                    writer.Write(Enumerable.Repeat<byte>(0x0, (4 - AudioTracks.Count) << 2).ToArray());
+                }
+
+                return stream.ToArray();
+            }
         }
 
         public override int Deserialize(byte[] data)
         {
-            int bytesRead = base.Deserialize(data);
+            var bytesRead = base.Deserialize(data);
 
-            Data = data;
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            {
+                int numItems = reader.ReadByte();
+
+                for (int i = 0; i < numItems; i++)
+                {
+                    AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                        bytesRead + ((int)reader.BaseStream.Position - 4));
+                }
+            }
 
             return data.Length;
         }
 
         public override string ToString()
         {
-            return BitConverter.ToString(Data).Replace("-", "");
+            return "";//BitConverter.ToString(Data).Replace("-", "");
         }
 
         public audExternalStreamSound(RageDataFile parent, string str) : base(parent, str)

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -13,11 +14,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 
-                    writer.Write(AudioTracks[0].HashKey);
+                    writer.Write(AudioTracks[0]);
 
                     writer.Write((byte)Variables.Length);
 
@@ -43,7 +44,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 int numItems = reader.ReadByte();
 
@@ -51,15 +53,13 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 for (int i = 0; i < numItems; i++)
                 {
-                    Variables[i] = new AudVariable();
-
-                    Variables[i].Name = new audHashString(parent, reader.ReadUInt32());
-
-                    Variables[i].Value = reader.ReadSingle();
-
-                    Variables[i].UnkFloat = reader.ReadSingle();
-
-                    Variables[i].Flags = reader.ReadByte();
+                    Variables[i] = new AudVariable
+                    {
+                        Name = new audHashString(parent, reader.ReadUInt32()),
+                        Value = reader.ReadSingle(),
+                        UnkFloat = reader.ReadSingle(),
+                        Flags = reader.ReadByte()
+                    };
                 }
             }
 
@@ -75,7 +75,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             for (int i = 0; i < Variables.Length; i++)
             {
                 builder.AppendLine("\n[Variable " + i + "]");
-                builder.AppendLine("Name: " + Variables[i].Name.ToString());
+                builder.AppendLine("Name: " + Variables[i].Name);
                 builder.AppendLine("Value: " + Variables[i].Value);
                 builder.AppendLine("Unk Float: " + Variables[i].UnkFloat);
                 builder.AppendLine("Flags: " + Variables[i].Flags);

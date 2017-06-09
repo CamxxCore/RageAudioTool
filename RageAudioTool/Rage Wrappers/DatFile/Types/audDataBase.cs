@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Xml.Serialization;
 using RageAudioTool.Interfaces;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -10,8 +9,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         protected RageDataFile parent;
 
         [Description("Name of the sound")]
-        [XmlElement(IsNullable = false)]
-        public audHashString Name { get; set; }
+        public audHashString Name { get; set; } = new audHashString();
 
         [XmlIgnore]
         [Browsable(false)]

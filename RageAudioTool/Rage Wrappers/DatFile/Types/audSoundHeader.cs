@@ -1,21 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using System.IO;
+using System.Windows.Forms;
 using RageAudioTool.Types;
 using RageAudioTool.Interfaces;
+using System.Xml.Serialization;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     [TypeConverter(typeof(NamedObjectConverter))]
     public class audSoundHeader : ISerializable
     {
-        public byte DataType;
+        [XmlAttribute]
+        public byte DataType { get; set; }
 
-        public uint DataFlags;
+        [XmlAttribute]
+        public uint DataFlags { get; set; }
 
         public uint UnkFlags
         {
@@ -159,7 +160,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             set
             {
                 _unk10 = value;
-                DataFlags |= 0x1000;
+              //  DataFlags |= 0x1000;
             }
         }
         private ushort _unk10; //0x23-0x25
@@ -358,11 +359,15 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             _parent = parent;
         }
 
+        public audSoundHeader()
+        {
+        }
+
         public byte[] Serialize()
         {
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(DataType);
 
@@ -534,7 +539,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             position++;
 
             DataFlags = BitConverter.ToUInt32(data, position);
-
+            
             position += 4;
 
             if (DataFlags != 0xAAAAAAAA)

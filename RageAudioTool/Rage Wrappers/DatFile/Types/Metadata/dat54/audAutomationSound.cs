@@ -1,7 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+﻿using System.IO;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -12,8 +10,6 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         public float UnkFloat1 { get; set; } //0x8-0xC
 
         public audHashString ParameterHash { get; set; } //0xC-0x10
-
-        public audHashString UnkHash { get; set; } //0x10-0x14
 
         public int WaveSlotId { get; set; } //0x14-0x18
 
@@ -29,9 +25,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
-                    writer.Write(AudioTracks[0].HashKey);
+                    writer.Write(bytes);
+
+                    writer.Write(AudioTracks[0]);
 
                     writer.Write(UnkFloat);
 
@@ -39,7 +37,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                     writer.Write(ParameterHash.HashKey);
 
-                    writer.Write(UnkHash.HashKey);
+                    writer.Write(AudioTracks[1]);
 
                     writer.Write(WaveSlotId);
 
@@ -65,7 +63,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 UnkFloat = reader.ReadSingle();
 
@@ -73,7 +72,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 ParameterHash = new audHashString(parent, reader.ReadUInt32());
 
-                UnkHash = new audHashString(parent, reader.ReadUInt32());
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()),
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 WaveSlotId = reader.ReadInt32();
 

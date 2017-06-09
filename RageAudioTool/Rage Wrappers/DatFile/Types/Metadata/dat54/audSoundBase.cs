@@ -1,7 +1,5 @@
-﻿using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+﻿using System.ComponentModel;
+using System.Xml.Serialization;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -12,22 +10,29 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public abstract class audSoundBase : audDataBase
     {
-        public int DataOffset { get; private set; }
+        [XmlIgnore]
+        [Browsable(false)]
+        public int DataOffset { get; protected set; }
 
         [ReadOnly(false)]
-        public audSoundHeader Header { get; }
+        public audSoundHeader Header { get; set; }
 
         [ReadOnly(false)]
-        public List<audHashString> AudioTracks { get; } = new List<audHashString>();
+        public audHashCollection AudioTracks { get; }
+
+        [ReadOnly(false)]
+        public audHashCollection AudioContainers { get; set; }
 
         /// <summary>
         /// Initialize the class with the hashed name of the data.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="hashName">Data object hash.</param>
-        public audSoundBase(RageDataFile parent, uint hashName) : base(parent, hashName)
+        protected audSoundBase(RageDataFile parent, uint hashName) : base(parent, hashName)
         {
             Header = new audSoundHeader(parent);
+            AudioTracks = new audHashCollection(this);
+            AudioContainers = new audHashCollection(this);          
         }
 
         /// <summary>
@@ -35,29 +40,46 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="str">Data object name.</param>
-        public audSoundBase(RageDataFile parent, string str) : base(parent, str)
+        protected audSoundBase(RageDataFile parent, string str) : base(parent, str)
         {
             Header = new audSoundHeader(parent);
+            AudioTracks = new audHashCollection(this);
+            AudioContainers = new audHashCollection(this);        
         }
 
         /// <summary>
         /// Default parameterless constructor for serialization.
         /// </summary>
-        public audSoundBase()
-        { }
+        protected audSoundBase()
+        {
+            Header = new audSoundHeader();
+            AudioTracks = new audHashCollection(this);
+            AudioContainers = new audHashCollection(this);           
+        }
+
+      //  public void AddTrack(audHashDesc hash)
+      //  {
+      //      AudioTracks.Add(hash);
+      //  }
+
+      //  public void AddContainer(audHashDesc hash)
+      //  {
+      //      AudioContainers.Add(hash);
+      //  }
 
         public override byte[] Serialize()
         {
-            return Header.Serialize();
+            var data = Header.Serialize();
+
+            DataOffset = data.Length;
+
+            return data;
         }
 
         public override int Deserialize(byte[] data)
         {
             AudioTracks.Clear();
-
-            DataOffset = Header.Deserialize(data);
-
-            return DataOffset;
+            return DataOffset = Header.Deserialize(data);
         }
     }
 }

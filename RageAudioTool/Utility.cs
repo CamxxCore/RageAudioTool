@@ -1,16 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using RageAudioTool.Types;
+using RageAudioTool.IO;
+using RageAudioTool.Rage_Wrappers.DatFile;
 
 namespace RageAudioTool
 {
     public static class Utility
     {
+        public static void Write(this IOBinaryWriter writer, audHashString hash)
+        {
+            writer.Write(hash.HashKey);
+        }
+
+        public static void Write(this IOBinaryWriter writer, audHashDesc hashdesc)
+        {
+            hashdesc.Offset = (int)writer.BaseStream.Position;
+            writer.Write(hashdesc.TrackName.HashKey);
+        }
+
         public static void DebugPrint(string msg)
         {
             Debug.Print(msg);
@@ -42,15 +53,15 @@ namespace RageAudioTool
             for (int i = 0; i < key.Length; ++i)
             {
                 hash += char.ToLower(key[i]);
-                hash += (hash << 10);
-                hash ^= (hash >> 6);
+                hash += hash << 10;
+                hash ^= hash >> 6;
             }
 
-            hash += (hash << 3);
-            hash ^= (hash >> 11);
-            hash += (hash << 15);
+            hash += hash << 3;
+            hash ^= hash >> 11;
+            hash += hash << 15;
 
-            return (hash & 0xFFFFFFFF);
+            return hash & 0xFFFFFFFF;
         }
 
         public static uint GenerateHash(string text)
@@ -62,15 +73,15 @@ namespace RageAudioTool
             for (int i = 0; i < key.Length; ++i)
             {
                 hash += key[i];
-                hash += (hash << 10);
-                hash ^= (hash >> 6);
+                hash += hash << 10;
+                hash ^= hash >> 6;
             }
 
-            hash += (hash << 3);
-            hash ^= (hash >> 11);
-            hash += (hash << 15);
+            hash += hash << 3;
+            hash ^= hash >> 11;
+            hash += hash << 15;
 
-            return (hash & 0xFFFFFFFF);
+            return hash & 0xFFFFFFFF;
         }
 
         public static int Size(this object type)

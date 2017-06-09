@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.ComponentModel;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+using RageAudioTool.IO;
 using RageAudioTool.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
@@ -51,6 +49,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public ushort UnkShort5 { get; set; } //0x76-0x78
 
+        public audHashString TrackName { get; set; } //0x78-0x7C
+
         //0x78-0x7C wave slot hash
 
     //    public byte UnkCount { get; set; } //0x7C-0x7D
@@ -63,28 +63,34 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 
                     writer.Write(WaveSlotIndex);
 
                     writer.Write(WaveA.ContainerName.HashKey);
+
                     writer.Write(WaveA.FileName.HashKey);
 
                     writer.Write(WaveB.ContainerName.HashKey);
+
                     writer.Write(WaveB.FileName.HashKey);
 
                     writer.Write(WaveC.ContainerName.HashKey);
+
                     writer.Write(WaveC.FileName.HashKey);
 
                     writer.Write(WaveD.ContainerName.HashKey);
+
                     writer.Write(WaveD.FileName.HashKey);
 
                     writer.Write(WaveE.ContainerName.HashKey);
+
                     writer.Write(WaveE.FileName.HashKey);
 
                     writer.Write(WaveF.ContainerName.HashKey);
+
                     writer.Write(WaveF.FileName.HashKey);
 
                     writer.Write(DataItem1.UnkFlags);
@@ -139,9 +145,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                     writer.Write(UnkShort5);
 
-                    writer.Write(AudioTracks[0].HashKey);
+                    writer.Write(AudioTracks[0]);
 
-                    writer.Write(UnkFloatData.Length);
+                    writer.Write((byte)UnkFloatData.Length);
 
                     for (int i = 0; i < UnkFloatData.Length; i++)
                     {
@@ -159,7 +165,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             var bytesRead = base.Deserialize(data);
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
+            using (BinaryReader reader = 
+                new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
                 WaveSlotIndex = reader.ReadInt32();
 
@@ -167,25 +174,37 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                     new audHashString(parent, reader.ReadUInt32()), 
                     new audHashString(parent, reader.ReadUInt32()));
 
+                AudioContainers.Add(WaveA.ContainerName, bytesRead + ((int)reader.BaseStream.Position - 8));
+
                 WaveB = new audWaveFile(
                     new audHashString(parent, reader.ReadUInt32()),
                     new audHashString(parent, reader.ReadUInt32()));
+
+                AudioContainers.Add(WaveB.ContainerName, bytesRead + ((int)reader.BaseStream.Position - 8));
 
                 WaveC = new audWaveFile(
                     new audHashString(parent, reader.ReadUInt32()),
                     new audHashString(parent, reader.ReadUInt32()));
 
+                AudioContainers.Add(WaveC.ContainerName, bytesRead + ((int)reader.BaseStream.Position - 8));
+
                 WaveD = new audWaveFile(
                     new audHashString(parent, reader.ReadUInt32()),
                     new audHashString(parent, reader.ReadUInt32()));
+
+                AudioContainers.Add(WaveD.ContainerName, bytesRead + ((int)reader.BaseStream.Position - 8));
 
                 WaveE = new audWaveFile(
                     new audHashString(parent, reader.ReadUInt32()),
                     new audHashString(parent, reader.ReadUInt32()));
 
+                AudioContainers.Add(WaveE.ContainerName, bytesRead + ((int)reader.BaseStream.Position - 8));
+
                 WaveF = new audWaveFile(
                     new audHashString(parent, reader.ReadUInt32()),
                     new audHashString(parent, reader.ReadUInt32()));
+
+                AudioContainers.Add(WaveF.ContainerName, bytesRead + ((int)reader.BaseStream.Position - 8));
 
                 DataItem1 = new audGranularSoundData(reader.ReadByte(),
                     reader.ReadByte(),
@@ -239,7 +258,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
                 UnkShort5 = reader.ReadUInt16();
 
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 var itemCount = reader.ReadByte();
 
@@ -282,6 +302,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             UnkFloat = unkFloat;
         }
 
+        public audGranularSoundData()
+        { }
+
         public byte UnkFlags { get; set; } //0x0-0x1
 
         public byte UnkFlags1 { get; set; } //0x1-0x2
@@ -301,6 +324,9 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             ContainerName = waveContainer;
             FileName = fileName;
         }
+
+        public audWaveFile()
+        { }
 
         public audHashString ContainerName { get; set; } //0x0-0x4
         public audHashString FileName { get; set; } //0x4-0x8

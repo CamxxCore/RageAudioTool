@@ -1,8 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
+﻿using System.IO;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
@@ -22,13 +19,13 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 
-                    writer.Write(AudioTracks[0].HashKey); //0x0-0x4
+                    writer.Write(AudioTracks[0]); //0x0-0x4
 
-                    writer.Write(AudioTracks[1].HashKey); //0x4-0x8
+                    writer.Write(AudioTracks[1]); //0x4-0x8
 
                     writer.Write(ParameterHash1.HashKey); //0x8-0xC
 
@@ -49,9 +46,11 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (BinaryReader reader = new BinaryReader(new MemoryStream(data, bytesRead, data.Length - bytesRead)))
             {
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
-                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()));
+                AudioTracks.Add(new audHashString(parent, reader.ReadUInt32()), 
+                    bytesRead + ((int)reader.BaseStream.Position - 4));
 
                 ParameterHash1 = new audHashString(parent, reader.ReadUInt32());
 

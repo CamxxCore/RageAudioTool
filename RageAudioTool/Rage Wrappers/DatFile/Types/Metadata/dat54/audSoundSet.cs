@@ -1,15 +1,12 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using System.IO;
-using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types;
-using RageAudioTool.Types;
+using RageAudioTool.IO;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
 {
     public class audSoundSet : audSoundBase
     {
-        public audSoundDef[] Items { get; set; }
+        public audSoundSetItem[] Items { get; set; }
 
         public override byte[] Serialize()
         {
@@ -17,7 +14,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
             using (MemoryStream stream = new MemoryStream())
             {             
-                using (BinaryWriter writer = new BinaryWriter(stream))
+                using (IOBinaryWriter writer = new IOBinaryWriter(stream))
                 {
                     writer.Write(bytes);
 
@@ -27,7 +24,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                     {
                         writer.Write(Items[i].ScriptName.HashKey);
 
-                        writer.Write(Items[i].SoundName.HashKey);
+                        writer.Write(AudioTracks[i]);
                     }
                 }
 
@@ -43,15 +40,18 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             {
                 var itemsCount = reader.ReadInt32();
 
-                Items = new audSoundDef[itemsCount];
+                Items = new audSoundSetItem[itemsCount];
 
                 for (int i = 0; i < itemsCount; i++)
                 {
-                    Items[i] = new audSoundDef();
+                    Items[i] = new audSoundSetItem
+                    {
+                        ScriptName = new audHashString(parent, reader.ReadUInt32()),
+                        SoundName = new audHashString(parent, reader.ReadUInt32())
+                    };
 
-                    Items[i].ScriptName = new audHashString(parent, reader.ReadUInt32());
-
-                    Items[i].SoundName = new audHashString(parent, reader.ReadUInt32());
+                    AudioTracks.Add(new audHashDesc(Items[i].SoundName,
+                        bytesRead + ((int)reader.BaseStream.Position - 4)));
                 }
             }
 
@@ -65,8 +65,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             for (int i = 0; i < Items.Length; i++)
             {
                 builder.AppendLine("\n[Item " + i + "]");
-                builder.AppendLine("Child 1: 0x" + Items[i].ScriptName.ToString());
-                builder.AppendLine("Child 2: 0x" + Items[i].SoundName.ToString());
+                builder.AppendLine("Child 1: 0x" + AudioTracks[i].TrackName);
+                builder.AppendLine("Child 2: 0x" + Items[i]);
             }
 
             return builder.ToString();

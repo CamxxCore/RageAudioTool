@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Xml.Serialization;
-using RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata;
+using System.ComponentModel;
 
-namespace RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata.speech
+namespace RageAudioTool.Rage_Wrappers.DatFile
 {
+    [Description("Holds speech related data. More specifically, data related to voices.")]
     public class audSpeechData : audSoundBase
     {
         [XmlElement(DataType = "hexBinary")]
@@ -17,7 +18,6 @@ namespace RageAudioTool.Rage_Wrappers.DatFile.Types.Metadata.speech
         public override int Deserialize(byte[] data)
         {
             Data = data;
-
             return data.Length;
         }
 

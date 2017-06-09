@@ -39,5 +39,8 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         public audByteArray(RageDataFile parent, string name, byte[] data) : base(parent, name, data)
         { }
+
+        public audByteArray() : base(null)
+        { }
     }
 }

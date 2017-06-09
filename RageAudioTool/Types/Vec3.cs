@@ -31,19 +31,19 @@ namespace RageAudioTool.Types
                     case 2:
                         return Z;
                     default:
-                        throw new ArgumentOutOfRangeException("idx");
+                        throw new ArgumentOutOfRangeException(nameof(idx));
                 }
             }
         }
 
-        public static implicit operator float[] (Vec3 v)
+        public static implicit operator float[](Vec3 v)
         {
-            return new float[] { v.X, v.Y, v.Z };
+            return new [] { v.X, v.Y, v.Z };
         }
 
         public override string ToString()
         {
-            return string.Format("[{0}, {1}, {2}]", X, Y, Z);
+            return $"[{X}, {Y}, {Z}]";
         }
     }
 }

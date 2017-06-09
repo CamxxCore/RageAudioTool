@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Globalization;
+using System.Xml.Serialization;
 using RageAudioTool.Types;
 
 namespace RageAudioTool.Rage_Wrappers.DatFile
@@ -14,6 +16,7 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
 
         [ReadOnly(false)]
         [TypeConverter(typeof(UInt32HexTypeConverter))]
+        [XmlIgnore]
         public uint HashKey
         {
             get
@@ -31,11 +34,12 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
                     _hashName = str;
                 }
 
-                else _hashName = string.Format("0x{0}", _hashKey.ToString("X"));
+                else _hashName = $"0x{_hashKey:X}";
             }
         }
 
-        [ReadOnly(false)]
+        [XmlText]
+        [ReadOnly(false)]      
         public string HashName
         {
             get
@@ -45,7 +49,16 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             set
             {
                 _hashName = value;
-                _hashKey = Utility.HashKey(_hashName);
+
+                if (_hashName.StartsWith("0x"))
+                {
+                    _hashKey = uint.Parse(_hashName.Substring(2),
+                        NumberStyles.HexNumber, CultureInfo.CurrentCulture);
+                }
+                else if (!uint.TryParse(_hashName, out _hashKey))
+                {
+                    _hashKey = _hashName.HashKey();
+                }
             }
         }    
 
@@ -55,12 +68,12 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
             _hashKey = hash;
 
             string str;
-            if (_parent.Nametable.TryGetValue(_hashKey, out str))
+            if (file != null && file.Nametable.TryGetValue(_hashKey, out str))
             {
                 _hashName = str;
             }
 
-            else _hashName = string.Format("0x{0}", _hashKey.ToString("X"));
+            else _hashName = $"0x{_hashKey:X}";
         }
 
         public audHashString(uint hash)
@@ -80,17 +93,17 @@ namespace RageAudioTool.Rage_Wrappers.DatFile
         {
             _parent = file;
             _hashName = str;
-            _hashKey = Utility.HashKey(_hashName);
+            _hashKey = _hashName.HashKey();
         }
 
         public static implicit operator string(audHashString hs)
         {
-            return hs.HashName;
+            return hs?.HashName;
         }
 
         public static implicit operator uint(audHashString hs)
         {
-            return hs.HashKey;
+            return hs?.HashKey ?? 0;
         }
 
         public override string ToString()
